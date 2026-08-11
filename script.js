@@ -1,42 +1,86 @@
 console.log("O script.js foi carregado com sucesso!");
 
-// Array de produtos
+// Array de produtos (agora com a propriedade 'disponivel' e 'categoria')
 const produtos = [
     {
         nome: "Bolo de Cenoura com Brigadeiro",
         descricao: "Delicioso bolo de cenoura fofinho com uma generosa cobertura de brigadeiro cremoso.",
         preco: 45.00,
-        imagem: "bolo_cenoura.jpg"
+        imagem: "bolo_cenoura.jpg",
+        disponivel: true, // NOVO: Disponibilidade do produto
+        categoria: "Bolo" // NOVO: Categoria do produto
     },
     {
         nome: "Torta de Limão",
         descricao: "Clássica torta de limão com base crocante e merengue suíço maçaricado.",
         preco: 38.00,
-        imagem: "torta_limao.jpg"
+        imagem: "torta_limao.jpg",
+        disponivel: true,
+        categoria: "Sobremesa"
     },
     {
         nome: "Brigadeiro Gourmet",
         descricao: "Caixa com 6 unidades de brigadeiros gourmet variados (tradicional, ninho, churros).",
         preco: 25.00,
-        imagem: "brigadeiro_gourmet.jpg"
+        imagem: "brigadeiro_gourmet.jpg",
+        disponivel: true,
+        categoria: "Brigadeiro"
     },
     {
         nome: "Cupcake de Chocolate",
         descricao: "Cupcake macio de chocolate com cobertura de ganache e granulado.",
         preco: 12.00,
-        imagem: "cupcake_chocolate.jpg"
+        imagem: "cupcake_chocolate.jpg",
+        disponivel: false, // Exemplo de produto indisponível
+        categoria: "Bolo"
     },
     {
         nome: "Pudim de Leite Condensado",
         descricao: "Tradicional pudim de leite condensado com calda de caramelo.",
         preco: 30.00,
-        imagem: "pudim_leite.jpg"
+        imagem: "pudim_leite.jpg",
+        disponivel: true,
+        categoria: "Sobremesa"
     },
     {
         nome: "Bolo de Chocolate Trufado",
         descricao: "Bolo intenso de chocolate com recheio e cobertura de trufa cremosa.",
         preco: 60.00,
-        imagem: "bolo_chocolate_trufado.jpg"
+        imagem: "bolo_chocolate_trufado.jpg",
+        disponivel: true,
+        categoria: "Bolo"
+    },
+    {
+        nome: "Bolo no Pote de Morango",
+        descricao: "Delicioso bolo no pote com camadas de massa, creme e morangos frescos.",
+        preco: 18.00,
+        imagem: "bolo_pote_morango.jpg",
+        disponivel: true,
+        categoria: "Bolo no Pote"
+    },
+    {
+        nome: "Copo da Felicidade",
+        descricao: "Camadas de brownie, brigadeiro, chantilly e frutas vermelhas no copo.",
+        preco: 25.00,
+        imagem: "copo_felicidade.jpg",
+        disponivel: true,
+        categoria: "Copo"
+    },
+    {
+        nome: "Coxinha de Frango",
+        descricao: "Tradicional coxinha de frango com catupiry, crocante por fora e cremosa por dentro.",
+        preco: 8.00,
+        imagem: "coxinha_frango.jpg",
+        disponivel: true,
+        categoria: "Salgados"
+    },
+    {
+        nome: "Refrigerante Lata",
+        descricao: "Coca-Cola, Guaraná ou Soda Limonada (350ml).",
+        preco: 6.00,
+        imagem: "refrigerante.jpg",
+        disponivel: true,
+        categoria: "Bebidas"
     }
 ];
 
@@ -48,6 +92,7 @@ const listaProdutosDiv = document.querySelector('.lista-produtos');
 const carrinhoItensDiv = document.querySelector('.carrinho-itens');
 const totalCarrinhoSpan = document.getElementById('total-carrinho');
 const botaoFinalizarCompra = document.querySelector('.finalizar-compra');
+const categoriasNav = document.getElementById('categorias-nav'); // NOVO: Referência para a navegação de categorias
 
 // Referências aos campos do formulário de endereço
 const nomeClienteInput = document.getElementById('nomeCliente');
@@ -60,6 +105,9 @@ const cidadeClienteInput = document.getElementById('cidadeCliente');
 const estadoClienteInput = document.getElementById('estadoCliente');
 const cepClienteInput = document.getElementById('cepCliente');
 
+// Variável para armazenar a categoria atualmente selecionada
+let categoriaAtual = 'Todos';
+
 
 // Função para salvar o carrinho no Local Storage
 function salvarCarrinho() {
@@ -70,20 +118,35 @@ function salvarCarrinho() {
 function renderizarProdutos() {
     listaProdutosDiv.innerHTML = '';
 
-    produtos.forEach(produto => {
+    // Filtra os produtos pela categoria atual, se não for 'Todos'
+    const produtosFiltrados = categoriaAtual === 'Todos'
+        ? produtos
+        : produtos.filter(produto => produto.categoria === categoriaAtual);
+
+    produtosFiltrados.forEach(produto => {
         const produtoItemDiv = document.createElement('div');
         produtoItemDiv.classList.add('produto-item');
+
+        // Adiciona a classe 'indisponivel' se o produto não estiver disponível
+        if (!produto.disponivel) {
+            produtoItemDiv.classList.add('indisponivel');
+        }
+
         produtoItemDiv.innerHTML = `
             <img src="${produto.imagem}" alt="${produto.nome}">
             <h3>${produto.nome}</h3>
             <p class="descricao">${produto.descricao}</p>
             <p class="preco">R$ ${produto.preco.toFixed(2).replace('.', ',')}</p>
-            <button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>
+            ${produto.disponivel
+                ? `<button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>`
+                : `<button class="adicionar-carrinho indisponivel-btn" disabled>Indisponível</button>`
+            }
         `;
         listaProdutosDiv.appendChild(produtoItemDiv);
     });
 
-    document.querySelectorAll('.adicionar-carrinho').forEach(botao => {
+    // Adiciona event listeners apenas para botões de produtos disponíveis
+    document.querySelectorAll('.adicionar-carrinho:not(.indisponivel-btn)').forEach(botao => {
         botao.addEventListener('click', (evento) => {
             const nomeProduto = evento.target.dataset.nome;
             const precoProduto = parseFloat(evento.target.dataset.preco);
@@ -108,6 +171,34 @@ function renderizarProdutos() {
         });
     });
 }
+
+// NOVO: Função para renderizar as categorias
+function renderizarCategorias() {
+    // Pega todas as categorias únicas dos produtos
+    const categorias = ['Todos', ...new Set(produtos.map(produto => produto.categoria))];
+
+    categoriasNav.innerHTML = ''; // Limpa a navegação de categorias
+
+    categorias.forEach(categoria => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.textContent = categoria;
+        button.classList.add('categoria-btn');
+        if (categoria === categoriaAtual) {
+            button.classList.add('active'); // Adiciona classe 'active' para a categoria selecionada
+        }
+        button.addEventListener('click', () => {
+            categoriaAtual = categoria;
+            // Remove a classe 'active' de todos os botões e adiciona ao clicado
+            document.querySelectorAll('.categoria-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderizarProdutos(); // Renderiza os produtos da nova categoria
+        });
+        li.appendChild(button);
+        categoriasNav.appendChild(li);
+    });
+}
+
 
 // Função para atualizar a exibição do carrinho na página
 function atualizarCarrinhoHTML() {
@@ -230,9 +321,9 @@ CEP: ${cep}
 Aguardando a confirmação!
     `;
 
-    // NOVO: Configuração e abertura do WhatsApp
-    const numeroWhatsApp = '5527997633871'; // <-- IMPORTANTE: SUBSTITUA PELO SEU NÚMERO DE WHATSAPP (com código do país e DDD, sem espaços ou traços)
-    const linkWhatsApp = `https://api.whatsapp.com/send?phone=${5527997633871}&text=${encodeURIComponent(mensagemPedido)}`;
+    // Configuração e abertura do WhatsApp
+    const numeroWhatsApp = '5527997633871'; // Seu número de WhatsApp configurado
+    const linkWhatsApp = `https://api.whatsapp.com/send?phone=${numeroWhatsApp}&text=${encodeURIComponent(mensagemPedido)}`;
 
     // Abre o WhatsApp em uma nova aba
     window.open(linkWhatsApp, '_blank');
@@ -241,10 +332,11 @@ Aguardando a confirmação!
     carrinho = [];
     salvarCarrinho();
     atualizarCarrinhoHTML();
-    limparFormularioEndereco(); // Limpa os campos do formulário
+    limparFormularioEndereco();
     console.log('Pedido enviado para o WhatsApp. Carrinho e formulário limpos.');
 });
 
 // Chama as funções iniciais ao carregar a página
 renderizarProdutos();
 atualizarCarrinhoHTML();
+renderizarCategorias(); // NOVO: Renderiza as categorias ao carregar a página
