@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brit's Confeitaria - Cardápio Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <img src="logopng.png" alt="Logo Brit's Confeitaria" class="logo">
+            <h1>Bem-vindo à Brit's Confeitaria!</h1>
+            <p>Seu cardápio diário de delícias frescas.</p>
+        </div>
+    </header>
+
+    <main>
+        <section id="produtos-destaque" class="container">
+            <h2>Nossas Delícias do Dia</h2>
+            <div class="lista-produtos">
+                <!-- Os produtos serão carregados aqui pelo JavaScript -->
+            </div>
+        </section>
+
+        <section id="carrinho" class="container">
+            <h2>Seu Carrinho</h2>
+            <div class="carrinho-itens">
+                <p>Seu carrinho está vazio.</p>
+            </div>
+            <div class="carrinho-total">
+                <p>Total: <span id="total-carrinho">R$ 0,00</span></p>
+            </div>
+
+            <!-- NOVO: Formulário de Endereço -->
+            <div class="endereco-form">
+                <h3>Dados para Entrega</h3>
+                <input type="text" id="nomeCliente" placeholder="Seu Nome Completo" required>
+                <input type="tel" id="telefoneCliente" placeholder="Telefone (WhatsApp)" required>
+                <input type="text" id="ruaCliente" placeholder="Rua" required>
+                <input type="text" id="numeroCliente" placeholder="Número" required>
+                <input type="text" id="complementoCliente" placeholder="Complemento (apto, bloco, etc.)">
+                <input type="text" id="bairroCliente" placeholder="Bairro" required>
+                <input type="text" id="cidadeCliente" placeholder="Cidade" required>
+                <input type="text" id="estadoCliente" placeholder="Estado (Ex: SP)" required maxlength="2">
+                <input type="text" id="cepCliente" placeholder="CEP (Ex: 00000-000)" required maxlength="9">
+            </div>
+
+            <button class="finalizar-compra">Finalizar Compra</button>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Brit's Confeitaria. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
