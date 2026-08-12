@@ -91,7 +91,8 @@ let carrinho = JSON.parse(localStorage.getItem('carrinhoBritS')) || [];
 const listaProdutosDiv = document.querySelector('.lista-produtos');
 const carrinhoItensDiv = document.querySelector('.carrinho-itens');
 const totalCarrinhoSpan = document.getElementById('total-carrinho');
-const botaoFinalizarCompra = document.querySelector('.finalizar-compra');
+// MUDANÇA AQUI: Selecionando o botão pelo ID
+const botaoFinalizarCompra = document.getElementById('confirmar-pedido-btn');
 const categoriasNav = document.getElementById('categorias-nav'); // NOVO: Referência para a navegação de categorias
 
 // Referências aos campos do formulário de endereço
@@ -273,7 +274,7 @@ function limparFormularioEndereco() {
 // Funcionalidade para o botão Finalizar Compra
 botaoFinalizarCompra.addEventListener('click', () => {
     if (carrinho.length === 0) {
-        alert('Seu carrinho está vazio. Adicione alguns produtos antes de finalizar a compra!');
+        alert('Seu pedido está vazio. Adicione alguns produtos antes de finalizar a compra!');
         return;
     }
 
