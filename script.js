@@ -31,7 +31,7 @@ const produtos = [
         descricao: "Cupcake macio de chocolate com cobertura de ganache e granulado.",
         preco: 12.00,
         imagem: "cupcake_chocolate.jpg",
-        disponivel: false, // Exemplo de produto indisponível
+        disponivel: true, // Exemplo de produto indisponível
         categoria: "Bolo"
     },
     {
@@ -76,7 +76,7 @@ const produtos = [
     },
     {
         nome: "Refrigerante Lata",
-        descricao: "Coca-Cola, Guaraná ou Soda Limonada (350ml).",
+        descricao: "Coca-Cola, Guaraná ou Soda Limonada, Laranja (350ml).",
         preco: 6.00,
         imagem: "refrigerante.jpg",
         disponivel: true,
