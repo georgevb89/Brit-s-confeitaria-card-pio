@@ -1,10 +1,24 @@
 /* Estilos Gerais */
+:root{
+    --bg:#f7f1e8;
+    --card:#ffffff;
+    --text:#3a2b20;
+    --muted:#8a7562;
+    --primary:#a0522d;
+    --primary-dark:#7a3e21;
+    --accent:#c9974c;
+    --border:#e6d9c6;
+    --shadow: 0 6px 18px rgba(70,40,20,0.10);
+}
+
+* { box-sizing: border-box; }
+
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: var(--bg);
+    color: var(--text);
 }
 
 .container {
@@ -16,140 +30,190 @@ body {
 
 /* Estilos do Cabeçalho (Header) */
 header {
-    background-color: #ffffff; /* Fundo branco para o cabeçalho, para destacar a logo */
-    color: #a0522d; /* Cor do texto do cabeçalho (marrom) */
-    padding: 10px 0;
+    background-color: #ffffff;
+    color: var(--primary);
+    padding: 20px 0 18px;
     text-align: center;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 header .logo {
-    max-width: 150px; /* Tamanho máximo da logo */
-    height: auto; /* Altura automática para manter proporção */
+    max-width: 130px;
+    height: auto;
     margin-bottom: 10px;
 }
 
 header h1 {
     margin: 0;
-    font-size: 2.5em;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--primary);
 }
 
 header p {
-    margin: 5px 0 0;
-    font-size: 1.1em;
+    margin: 6px 0 0;
+    font-size: 1em;
+    color: var(--muted);
 }
+
+/* Cards de destaque */
+.destaques {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.destaque-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+.destaque-item .emoji { font-size: 26px; }
+.destaque-item .txt { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 600; }
 
 /* Estilos da Seção Principal (Main) */
 main {
-    padding: 20px 0;
+    padding: 10px 0 20px;
 }
 
 /* Estilos da Seção de Produtos em Destaque */
 #produtos-destaque {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 10px 0 0;
 }
 
 #produtos-destaque h2 {
     text-align: center;
-    color: #a0522d;
-    margin-bottom: 30px;
-    font-size: 2em;
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 1.8em;
 }
 
 .lista-produtos {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 3 colunas, ajustável */
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px;
 }
 
 /* Estilos para cada item de produto */
 .produto-item {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    padding: 0 0 15px;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Para empurrar o botão para baixo */
+    justify-content: space-between;
+    transition: transform 0.18s, box-shadow 0.18s;
+    position: relative;
+}
+
+.produto-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(70,40,20,0.16);
 }
 
 .produto-item img {
     max-width: 100%;
-    height: 180px; /* Altura fixa para as imagens */
-    object-fit: cover; /* Para cortar a imagem e preencher o espaço */
-    border-radius: 4px;
+    height: 170px;
+    object-fit: cover;
     margin-bottom: 10px;
 }
 
 .produto-item h3 {
-    color: #a0522d;
-    font-size: 1.4em;
-    margin-top: 10px;
-    margin-bottom: 5px;
+    color: var(--primary);
+    font-size: 1.2em;
+    margin: 0 14px 5px;
 }
 
 .produto-item .descricao {
     font-size: 0.9em;
-    color: #555;
-    margin-bottom: 10px;
-    flex-grow: 1; /* Faz a descrição ocupar o espaço disponível */
+    color: var(--muted);
+    margin: 0 14px 10px;
+    flex-grow: 1;
 }
 
 .produto-item .preco {
     font-size: 1.3em;
-    color: #28a745; /* Um verde para o preço, destacando */
+    color: var(--primary);
     font-weight: bold;
-    margin-bottom: 15px;
+    margin: 0 14px 15px;
+}
+
+.preco-original {
+    text-decoration: line-through;
+    color: var(--muted);
+    font-size: 0.7em;
+    font-weight: 500;
+}
+
+.produto-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #e0483b;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 5;
 }
 
 .produto-item .adicionar-carrinho {
-    background-color: #a0522d; /* Cor do botão */
+    background-color: var(--primary);
     color: white;
     border: none;
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 1em;
+    font-family: inherit;
+    font-weight: 600;
+    margin: 0 14px;
     transition: background-color 0.3s ease;
 }
 
 .produto-item .adicionar-carrinho:hover {
-    background-color: #8b4513; /* Cor mais escura ao passar o mouse */
+    background-color: var(--primary-dark);
 }
 
 /* Estilos para a seção do carrinho */
 #carrinho {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 30px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-top: 20px;
 }
 
 #carrinho h2 {
-    color: #a0522d;
+    color: var(--primary);
     text-align: center;
     margin-bottom: 20px;
 }
 
 .carrinho-itens {
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-    margin-bottom: 15px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 15px 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 5px;
 }
 
 .carrinho-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 8px 0;
-    border-bottom: 1px dashed #eee;
+    border-bottom: 1px dashed var(--border);
     font-size: 0.95em;
-    color: #333;
+    color: var(--text);
 }
 
 .carrinho-item:last-child {
@@ -158,135 +222,96 @@ main {
 
 .carrinho-total {
     text-align: right;
+    margin-top: 15px;
+}
+
+.carrinho-total p {
+    margin: 4px 0;
+    color: var(--text);
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.carrinho-total p.total-final {
     font-size: 1.2em;
     font-weight: bold;
-    color: #28a745;
-    margin-top: 15px;
+    color: var(--primary);
+    margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--border);
 }
 
 .finalizar-compra {
-    display: block; /* Para ocupar a largura total */
+    display: block;
     width: 100%;
-    background-color: #28a745; /* Um verde para o botão de finalizar */
+    background-color: #25D366;
     color: white;
     border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
+    padding: 13px 20px;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 700;
+    font-family: inherit;
     margin-top: 20px;
     transition: background-color 0.3s ease;
 }
 
 .finalizar-compra:hover {
-    background-color: #218838; /* Verde mais escuro ao passar o mouse */
+    background-color: #1ebc59;
+}
+
+.finalizar-compra:disabled {
+    background-color: #ccc;
+    color: #777;
+    cursor: not-allowed;
 }
 
 /* Estilos do Rodapé (Footer) */
 footer {
-    background-color: #333;
-    color: white;
     text-align: center;
-    padding: 20px 0;
-    margin-top: 40px;
-}
-
-footer p {
-    margin: 0;
+    color: var(--muted);
+    padding: 26px 0;
+    margin-top: 20px;
     font-size: 0.9em;
+    line-height: 1.7;
 }
-
 
 /* --- Media Queries para Responsividade --- */
-
-/* Para telas menores que 768px (tablets e celulares) */
 @media (max-width: 768px) {
-    .container {
-        padding: 0 15px; /* Ajusta o padding para telas menores */
-    }
-
-    header h1 {
-        font-size: 2em; /* Diminui o tamanho do título principal */
-    }
-
-    header p {
-        font-size: 1em;
-    }
-
-    .lista-produtos {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Ajusta para 1 ou 2 colunas */
-        gap: 20px;
-    }
-
-    .produto-item img {
-        height: 150px; /* Diminui a altura da imagem do produto */
-    }
-
-    .produto-item h3 {
-        font-size: 1.2em;
-    }
-
-    .produto-item .preco {
-        font-size: 1.1em;
-    }
-
-    #carrinho h2 {
-        font-size: 1.8em;
-    }
+    .container { padding: 0 15px; }
+    header h1 { font-size: 1.6em; }
+    header p { font-size: 0.9em; }
+    .lista-produtos { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .produto-item img { height: 150px; }
+    .produto-item h3 { font-size: 1.1em; }
+    .produto-item .preco { font-size: 1.1em; }
+    #carrinho h2 { font-size: 1.6em; }
 }
 
-/* Para telas muito pequenas (celulares) */
 @media (max-width: 480px) {
-    header h1 {
-        font-size: 1.8em;
-    }
-
-    header p {
-        font-size: 0.9em;
-    }
-
-    .lista-produtos {
-        grid-template-columns: 1fr; /* Força uma única coluna em telas muito pequenas */
-    }
-
-    .produto-item img {
-        height: 120px;
-    }
-
-    .produto-item h3 {
-        font-size: 1.1em;
-    }
-
-    .produto-item .preco {
-        font-size: 1em;
-    }
-
-    .carrinho-item {
-        flex-direction: column; /* Empilha nome e preço no carrinho */
-        align-items: flex-start;
-    }
-
-    .carrinho-item span:last-child {
-        margin-top: 5px;
-    }
+    header h1 { font-size: 1.5em; }
+    header p { font-size: 0.85em; }
+    .lista-produtos { grid-template-columns: 1fr; }
+    .produto-item img { height: 150px; }
+    .carrinho-item { flex-direction: column; align-items: flex-start; }
+    .carrinho-item span:last-child { margin-top: 5px; }
 }
+
 /* Estilos para os botões de quantidade no carrinho */
 .quantidade-controle {
     display: flex;
     align-items: center;
-    gap: 5px; /* Espaçamento entre os botões e o número */
+    gap: 5px;
 }
 
 .btn-quantidade {
-    background-color: #a0522d; /* Cor do botão */
+    background-color: var(--primary);
     color: white;
     border: none;
-    border-radius: 4px;
-    width: 25px; /* Largura fixa para o botão */
-    height: 25px; /* Altura fixa para o botão */
+    border-radius: 8px;
+    width: 25px;
+    height: 25px;
     font-size: 1em;
     cursor: pointer;
     display: flex;
@@ -296,82 +321,127 @@ footer p {
 }
 
 .btn-quantidade:hover {
-    background-color: #8b4513;
+    background-color: var(--primary-dark);
 }
 
-/* Ajuste para o item do carrinho para acomodar os novos botões */
-.carrinho-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Alinha verticalmente os itens */
-    padding: 8px 0;
-    border-bottom: 1px dashed #eee;
-    font-size: 0.95em;
-    color: #333;
-}
-
-/* Ajuste para telas pequenas para os controles de quantidade */
 @media (max-width: 480px) {
-    .carrinho-item {
-        flex-wrap: wrap; /* Permite que os itens quebrem a linha */
-        justify-content: space-between;
-    }
-    .carrinho-item > span:first-child { /* Nome do produto */
-        flex-basis: 100%; /* Ocupa toda a largura */
-        margin-bottom: 5px;
-    }
-    .quantidade-controle {
-        margin-right: auto; /* Empurra o controle para a esquerda */
-    }
-}/* Estilos para o Formulário de Endereço */
-.endereco-form {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
+    .carrinho-item { flex-wrap: wrap; justify-content: space-between; }
+    .carrinho-item > span:first-child { flex-basis: 100%; margin-bottom: 5px; }
+    .quantidade-controle { margin-right: auto; }
+}
+
+/* Estilos do card "Seus dados" */
+.card-secao {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 20px;
+    box-shadow: var(--shadow);
 }
 
 .endereco-form h3 {
-    color: #a0522d;
-    text-align: center;
-    margin-bottom: 20px;
+    color: var(--primary);
+    margin: 0 0 12px;
+    font-size: 1.15em;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+    text-align: left;
+}
+
+.endereco-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    color: var(--text);
+}
+
+.endereco-form .label-cep {
+    color: var(--primary);
 }
 
 .endereco-form input[type="text"],
-.endereco-form input[type="tel"] {
-    width: calc(100% - 20px); /* Largura total menos o padding */
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
-    font-size: 1em;
+.endereco-form input[type="tel"],
+.endereco-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 5px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
 }
 
-/* Ajustes para responsividade do formulário */
-@media (max-width: 768px) {
-    .endereco-form input[type="text"],
-    .endereco-form input[type="tel"] {
-        width: 100%; /* Em telas menores, ocupa 100% */
-    }
-}/* Estilos para produtos indisponíveis */
+.endereco-form textarea { resize: vertical; }
+
+/* Botões de opção (Retirada/Entrega, Forma de pagamento) */
+.opcoes-radio {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.opcao-btn {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: 13px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.opcao-btn.selecionado {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+}
+
+#areaEntrega, #areaTroco {
+    margin-top: 4px;
+}
+
+.info-frete {
+    font-size: 0.9em;
+    margin: 10px 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background-color: #faf5ec;
+    color: var(--primary);
+    font-weight: 600;
+    border: 1px solid var(--border);
+}
+
+/* Estilos para produtos indisponíveis */
 .produto-item.indisponivel {
-    opacity: 0.6; /* Deixa o produto um pouco transparente */
-    pointer-events: none; /* Impede cliques no item */
+    opacity: 0.6;
+    pointer-events: none;
     position: relative;
 }
 
 .produto-item.indisponivel::after {
     content: "Indisponível";
     position: absolute;
-    top: 50%;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(255, 0, 0, 0.7);
+    background-color: rgba(160, 82, 45, 0.85);
     color: white;
     padding: 8px 15px;
-    border-radius: 5px;
+    border-radius: 8px;
     font-weight: bold;
-    font-size: 1.2em;
+    font-size: 1.1em;
     z-index: 10;
 }
 
@@ -382,8 +452,14 @@ footer p {
 
 /* Estilos para as Categorias */
 .categorias {
-    margin-bottom: 20px;
-    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--card);
+    margin: 0 0 20px;
+    padding: 12px 0;
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--border);
 }
 
 .categorias ul {
@@ -391,43 +467,140 @@ footer p {
     padding: 0;
     margin: 0;
     display: flex;
-    flex-wrap: wrap; /* Permite que as categorias quebrem a linha em telas menores */
+    flex-wrap: nowrap;
     justify-content: center;
-    gap: 10px; /* Espaçamento entre os botões */
+    overflow-x: auto;
+    gap: 10px;
 }
 
 .categorias button {
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    padding: 10px 15px;
+    white-space: nowrap;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
     border-radius: 20px;
     cursor: pointer;
     font-size: 1em;
-    color: #333;
+    font-family: inherit;
+    color: var(--primary);
+    font-weight: 600;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .categorias button:hover {
-    background-color: #e0e0e0;
-    border-color: #bbb;
+    background-color: var(--accent);
+    color: #3a2b12;
 }
 
 .categorias button.active {
-    background-color: #a0522d; /* Cor principal da sua confeitaria */
+    background-color: var(--primary);
     color: white;
-    border-color: #a0522d;
-    font-weight: bold;
+    border-color: var(--primary);
+    font-weight: 700;
 }
 
-/* Ajustes para responsividade das categorias */
 @media (max-width: 600px) {
     .categorias ul {
-        justify-content: flex-start; /* Alinha à esquerda em telas muito pequenas */
-        overflow-x: auto; /* Adiciona scroll horizontal se não couber */
-        white-space: nowrap; /* Impede que os botões quebrem linha dentro do ul */
-        padding-bottom: 5px; /* Espaço para a barra de scroll */
+        justify-content: flex-start;
+        padding-bottom: 5px;
     }
     .categorias button {
-        flex-shrink: 0; /* Impede que os botões encolham */
+        flex-shrink: 0;
     }
+}
+
+/* Faixa de status da loja (aberta/fechada) */
+.status-loja-banner {
+    position: sticky;
+    top: 0;
+    z-index: 55;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 0.88em;
+    font-weight: 700;
+    background: var(--bg);
+    color: var(--muted);
+}
+.status-loja-banner.loja-aberta { background: #d4edda; color: #1e6b34; }
+.status-loja-banner.loja-fechada { background: #f8d7da; color: #a53238; }
+
+/* Faixa de status do pedido (aparece pro cliente acompanhar aceite/recusa) */
+.status-pedido-banner {
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 10px 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.status-pedido-banner.status-pendente { background: #fff3cd; color: #8a6300; }
+.status-pedido-banner.status-aceito { background: #d4edda; color: #1e6b34; }
+.status-pedido-banner.status-recusado { background: #f8d7da; color: #a53238; }
+
+#statusPedidoFechar {
+    background: none;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    font-weight: 700;
+    padding: 0 4px;
+}
+#statusPedidoFechar:hover { opacity: 1; }
+
+/* Cupom de desconto */
+.cupom-area {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+.cupom-area input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9em;
+    background: var(--bg);
+    color: var(--text);
+}
+.cupom-area button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+}
+.cupom-area button:hover { background: var(--primary-dark); }
+
+.cupom-mensagem {
+    font-size: 0.85em;
+    margin: 6px 0 0;
+    font-weight: 600;
+}
+.cupom-mensagem.sucesso { color: #1e6b34; }
+.cupom-mensagem.erro { color: #c0392b; }
+
+#linhaDesconto span { color: #1e6b34; font-weight: 600; }
+
+/* Observação por item (personalização) */
+.produto-item .observacao-item {
+    width: calc(100% - 28px);
+    margin: 0 14px 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.82em;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--text);
 }
