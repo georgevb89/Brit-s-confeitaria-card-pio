@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brit's Confeitaria - Cardápio Online</title>
+
+    <!-- Compartilhamento bonito (WhatsApp, Instagram, etc.) -->
+    <meta property="og:title" content="Brit's Confeitaria - Cardápio Online">
+    <meta property="og:description" content="Bolos, doces e salgados fresquinhos, feitos com carinho. Peça direto pelo nosso cardápio online!">
+    <meta property="og:image" content="https://menubritsconfeitaria.github.io/Brit-s-confeitaria-card-pio/logopng.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://menubritsconfeitaria.github.io/Brit-s-confeitaria-card-pio/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="description" content="Bolos, doces e salgados fresquinhos, feitos com carinho. Peça direto pelo nosso cardápio online!">
+
+    <!-- PWA (app instalável) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a0522d">
+    <link rel="apple-touch-icon" href="logopng.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,7 +32,25 @@
         </div>
     </header>
 
+    <div id="statusLojaBanner" class="status-loja-banner">
+        <span id="statusLojaTexto">Verificando o horário de funcionamento...</span>
+    </div>
+
+    <div id="statusPedidoBanner" class="status-pedido-banner" style="display:none;">
+        <span id="statusPedidoTexto"></span>
+        <button id="statusPedidoFechar" onclick="fecharStatusPedido()">✕</button>
+    </div>
+
     <main>
+        <div class="container">
+            <div class="destaques">
+                <div class="destaque-item"><div class="emoji">🧁</div><div class="txt">Feito com carinho</div></div>
+                <div class="destaque-item"><div class="emoji">🌾</div><div class="txt">Ingredientes selecionados</div></div>
+                <div class="destaque-item"><div class="emoji">🛵</div><div class="txt">Entrega na sua casa</div></div>
+                <div class="destaque-item"><div class="emoji">💳</div><div class="txt">Pix, cartão ou dinheiro</div></div>
+            </div>
+        </div>
+
         <section id="produtos-destaque" class="container">
             <h2>Nossas Delícias do Dia</h2>
             <!-- NOVO: Navegação de Categorias -->
@@ -34,25 +69,60 @@
             <div class="carrinho-itens">
                 <p>Seu carrinho está vazio.</p>
             </div>
+
+            <div class="cupom-area">
+                <input type="text" id="cupomInput" placeholder="Cupom de desconto">
+                <button onclick="aplicarCupom()">Aplicar</button>
+            </div>
+            <p id="cupomMensagem" class="cupom-mensagem"></p>
+
             <div class="carrinho-total">
-                <p>Total: <span id="total-carrinho">R$ 0,00</span></p>
+                <p>Subtotal: <span id="subtotal-carrinho">R$ 0,00</span></p>
+                <p id="linhaDesconto" style="display:none;">Desconto: <span id="desconto-carrinho">- R$ 0,00</span></p>
+                <p>Entrega: <span id="frete-carrinho">R$ 0,00</span></p>
+                <p class="total-final">Total: <span id="total-carrinho">R$ 0,00</span></p>
             </div>
 
-            <div class="endereco-form">
-                <h3>Dados para Entrega</h3>
+            <div class="endereco-form card-secao">
+                <h3>Seus dados</h3>
                 <input type="text" id="nomeCliente" placeholder="Seu Nome Completo" required>
                 <input type="tel" id="telefoneCliente" placeholder="Telefone (WhatsApp)" required>
-                <input type="text" id="ruaCliente" placeholder="Rua" required>
-                <input type="text" id="numeroCliente" placeholder="Número" required>
-                <input type="text" id="complementoCliente" placeholder="Complemento (apto, bloco, etc.)">
-                <input type="text" id="bairroCliente" placeholder="Bairro" required>
-                <input type="text" id="cidadeCliente" placeholder="Cidade" required>
-                <input type="text" id="estadoCliente" placeholder="Estado (Ex: ES)" required maxlength="2">
-                <input type="text" id="cepCliente" placeholder="CEP (Ex: 00000-000)" required maxlength="9">
+
+                <label>Como você quer receber?</label>
+                <div class="opcoes-radio">
+                    <div class="opcao-btn selecionado" id="btnRetirada" onclick="selecionarTipoEntrega('retirada')">🏠 Retirar no local</div>
+                    <div class="opcao-btn" id="btnEntrega" onclick="selecionarTipoEntrega('entrega')">🛵 Entrega</div>
+                </div>
+
+                <div id="areaEntrega" style="display:none;">
+                    <label class="label-cep">CEP</label>
+                    <input type="text" id="cepCliente" placeholder="Digite seu CEP (Ex: 00000-000)" maxlength="9" onblur="calcularFrete()">
+                    <div id="infoFrete" class="info-frete" style="display:none;"></div>
+                    <input type="text" id="ruaCliente" placeholder="Rua">
+                    <input type="text" id="numeroCliente" placeholder="Número">
+                    <input type="text" id="complementoCliente" placeholder="Complemento (apto, bloco, etc.)">
+                    <input type="text" id="bairroCliente" placeholder="Bairro">
+                    <input type="text" id="cidadeCliente" placeholder="Cidade">
+                    <input type="text" id="estadoCliente" placeholder="Estado (Ex: ES)" maxlength="2">
+                </div>
+
+                <label>Forma de pagamento</label>
+                <div class="opcoes-radio">
+                    <div class="opcao-btn selecionado" id="btnPix" onclick="selecionarPagamento('Pix')">💠 Pix</div>
+                    <div class="opcao-btn" id="btnCartao" onclick="selecionarPagamento('Cartão')">💳 Cartão</div>
+                    <div class="opcao-btn" id="btnDinheiro" onclick="selecionarPagamento('Dinheiro')">💵 Dinheiro</div>
+                </div>
+
+                <div id="areaTroco" style="display:none;">
+                    <label>Precisa de troco para quanto?</label>
+                    <input type="text" id="clienteTroco" placeholder="Ex: R$ 50,00">
+                </div>
+
+                <label>Observações (opcional)</label>
+                <textarea id="clienteObs" rows="2" placeholder="Ex: sem lactose, para uma festa, etc."></textarea>
             </div>
 
-            <!-- AQUI ESTÁ A MUDANÇA: Adicionei um ID e mudei o texto -->
-            <button id="confirmar-pedido-btn" class="finalizar-compra">Confirmar seu Pedido</button>
+            <button class="finalizar-compra">Finalizar Compra</button>
         </section>
     </main>
 
@@ -62,6 +132,10 @@
         </div>
     </footer>
 
+    <!-- Firebase (para salvar os pedidos no painel da loja) -->
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
