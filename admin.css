@@ -1,0 +1,363 @@
+:root{
+    --bg:#f7f1e8;
+    --card:#ffffff;
+    --text:#3a2b20;
+    --muted:#8a7562;
+    --primary:#a0522d;
+    --primary-dark:#7a3e21;
+    --accent:#c9974c;
+    --border:#e6d9c6;
+    --shadow: 0 6px 18px rgba(70,40,20,0.10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+/* Tela de login */
+.tela-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 30px 26px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.login-logo {
+    max-width: 90px;
+    margin-bottom: 10px;
+}
+
+.login-card h1 {
+    color: var(--primary);
+    font-size: 1.4em;
+    margin: 0 0 6px;
+}
+
+.login-sub {
+    color: var(--muted);
+    font-size: 0.85em;
+    margin: 0 0 20px;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 11px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95em;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+}
+
+.login-card button {
+    width: 100%;
+    background-color: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.login-card button:hover { background-color: var(--primary-dark); }
+
+.login-erro {
+    color: #c0392b;
+    font-size: 0.85em;
+    margin-top: 12px;
+    min-height: 18px;
+}
+
+/* Painel */
+.painel-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: var(--shadow);
+}
+
+.painel-header-info { display: flex; align-items: center; gap: 12px; }
+.painel-logo { width: 42px; height: auto; }
+.painel-header h1 { margin: 0; font-size: 1.15em; color: var(--primary); }
+#statusConexao { margin: 2px 0 0; font-size: 0.8em; color: var(--muted); }
+
+.btn-sair {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+.btn-sair:hover { background: var(--border); }
+
+.painel-main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+}
+
+.painel-main h2 {
+    color: var(--primary);
+    font-size: 1.15em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 28px 0 12px;
+}
+
+.badge-contador {
+    background: #e0483b;
+    color: #fff;
+    font-size: 0.7em;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 12px;
+}
+
+.lista-pedidos { display: flex; flex-direction: column; gap: 14px; }
+.lista-pedidos .vazio { color: var(--muted); font-size: 0.9em; }
+
+.pedido-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+}
+
+.pedido-card.novo { border-color: var(--primary); border-width: 2px; }
+
+.pedido-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 10px;
+}
+
+.pedido-cliente { font-weight: 700; color: var(--text); font-size: 1.05em; }
+.pedido-hora { font-size: 0.78em; color: var(--muted); white-space: nowrap; }
+
+.pedido-tag {
+    display: inline-block;
+    font-size: 0.72em;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin: 4px 6px 4px 0;
+}
+.tag-entrega { background: #fdecd8; color: #a0522d; }
+.tag-retirada { background: #e6f4ea; color: #2d7a41; }
+.tag-pagamento { background: #eee7fb; color: #6a4bb5; }
+.tag-status-pendente { background: #fff3cd; color: #8a6300; }
+.tag-status-aceito { background: #d4edda; color: #1e6b34; }
+.tag-status-recusado { background: #f8d7da; color: #a53238; }
+
+.pedido-itens {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    border-top: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--border);
+}
+.pedido-itens li {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+
+.pedido-total-linha {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    color: var(--muted);
+    margin-top: 4px;
+}
+.pedido-total-linha.total-final {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1em;
+    margin-top: 6px;
+}
+
+.pedido-endereco, .pedido-obs {
+    font-size: 0.85em;
+    color: var(--text);
+    margin-top: 8px;
+    background: var(--bg);
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+.pedido-acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.pedido-acoes button {
+    flex: 1;
+    padding: 11px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+
+.btn-aceitar { background: #25D366; color: #fff; }
+.btn-aceitar:hover { background: #1ebc59; }
+.btn-recusar { background: #fff; color: #c0392b; border: 1px solid #f0b7b7 !important; }
+.btn-recusar:hover { background: #fdecec; }
+
+.historico .pedido-card { opacity: 0.85; }
+
+/* Status da loja */
+.loja-status-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+}
+
+.loja-status-atual { margin: 0 0 12px; font-size: 0.95em; }
+.loja-status-atual strong { font-size: 1.05em; }
+
+.loja-status-card label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.loja-status-card h3 {
+    color: var(--primary);
+    font-size: 1em;
+    margin: 20px 0 10px;
+}
+
+.opcoes-radio {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.opcao-btn {
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.opcao-btn.selecionado {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+}
+
+.lista-horarios {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.linha-horario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 10px;
+    font-size: 0.85em;
+}
+
+.linha-horario .dia-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 110px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.linha-horario input[type="time"] {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-family: inherit;
+    font-size: 0.9em;
+    background: var(--card);
+    color: var(--text);
+}
+
+.btn-salvar-horarios {
+    margin-top: 14px;
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+.btn-salvar-horarios:hover { background: var(--primary-dark); }
+
+.horarios-salvos-msg {
+    text-align: center;
+    color: #1e6b34;
+    font-size: 0.85em;
+    font-weight: 600;
+    min-height: 18px;
+    margin: 8px 0 0;
+}

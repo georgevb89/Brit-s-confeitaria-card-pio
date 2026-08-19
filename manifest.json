@@ -1,0 +1,19 @@
+{
+  "name": "Brit's Confeitaria - Cardápio Online",
+  "short_name": "Brit's Confeitaria",
+  "description": "Bolos, doces e salgados fresquinhos, feitos com carinho. Peça direto pelo cardápio!",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f1e8",
+  "theme_color": "#a0522d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "logopng.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
