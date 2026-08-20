@@ -361,3 +361,164 @@ body {
     min-height: 18px;
     margin: 8px 0 0;
 }
+
+/* Produtos (painel) */
+.btn-importar-dados {
+    width: 100%;
+    background: #fff3cd;
+    color: #8a6300;
+    border: 2px dashed #e0c168;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.9em;
+    cursor: pointer;
+    margin-bottom: 14px;
+}
+.btn-importar-dados:hover { background: #ffe9a8; }
+
+.produtos-admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.produto-admin-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+}
+
+.produto-admin-linha {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.produto-admin-item input[type="text"],
+.produto-admin-item input[type="number"],
+.produto-admin-item textarea {
+    flex: 1;
+    min-width: 120px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.88em;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.produto-admin-item textarea {
+    width: 100%;
+    resize: vertical;
+    margin-bottom: 8px;
+}
+
+.produto-disponivel-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.produto-admin-acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.btn-salvar-produto, .btn-excluir-produto {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+.btn-salvar-produto { background: var(--primary); color: #fff; }
+.btn-salvar-produto:hover { background: var(--primary-dark); }
+.btn-excluir-produto { background: #fff; color: #c0392b; border: 1px solid #f0b7b7 !important; }
+.btn-excluir-produto:hover { background: #fdecec; }
+
+.btn-novo-produto {
+    width: 100%;
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    color: var(--primary);
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+}
+.btn-novo-produto:hover { background: var(--border); }
+
+/* Cupons (painel) */
+.cupons-admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.cupom-admin-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+}
+
+.cupom-admin-info { display: flex; flex-direction: column; }
+.cupom-admin-info strong { color: var(--primary); }
+.cupom-admin-info span { font-size: 0.85em; color: var(--muted); }
+
+.btn-excluir-cupom {
+    background: none;
+    border: none;
+    font-size: 1.1em;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.btn-excluir-cupom:hover { opacity: 1; }
+
+.cupom-novo-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.cupom-novo-form input, .cupom-novo-form select {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.88em;
+    background: var(--bg);
+    color: var(--text);
+}
+.cupom-novo-form button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+}
+.cupom-novo-form button:hover { background: var(--primary-dark); }

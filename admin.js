@@ -244,10 +244,196 @@ function escutarConfigLoja() {
     });
 }
 
+// ---------- IMPORTAÇÃO ÚNICA DOS DADOS QUE JÁ EXISTIAM NO CARDÁPIO ----------
+// Só usada uma vez, pra transferir os produtos/cupons que estavam fixos no código pro Firebase.
+// É seguro: só escreve em /produtos e /cupons, nunca mexe em pedidos ou configurações.
+
+const DADOS_INICIAIS = {
+    produtos: {
+        p1: { nome: "Bolo de Cenoura com Brigadeiro", descricao: "Delicioso bolo de cenoura fofinho com uma generosa cobertura de brigadeiro cremoso.", preco: 45.00, imagem: "bolo_cenoura.jpg", disponivel: true, categoria: "Bolo" },
+        p2: { nome: "Torta de Limão", descricao: "Clássica torta de limão com base crocante e merengue suíço maçaricado.", preco: 38.00, imagem: "torta_limao.jpg", disponivel: true, categoria: "Sobremesa" },
+        p3: { nome: "Brigadeiro Gourmet", descricao: "Caixa com 6 unidades de brigadeiros gourmet variados (tradicional, ninho, churros).", preco: 25.00, imagem: "brigadeiro_gourmet.jpg", disponivel: true, categoria: "Brigadeiro" },
+        p4: { nome: "Cupcake de Chocolate", descricao: "Cupcake macio de chocolate com cobertura de ganache e granulado.", preco: 12.00, imagem: "cupcake_chocolate.jpg", disponivel: false, categoria: "Bolo" },
+        p5: { nome: "Pudim de Leite Condensado", descricao: "Tradicional pudim de leite condensado com calda de caramelo.", preco: 30.00, imagem: "pudim_leite.jpg", disponivel: true, categoria: "Sobremesa" },
+        p6: { nome: "Bolo de Chocolate Trufado", descricao: "Bolo intenso de chocolate com recheio e cobertura de trufa cremosa.", preco: 60.00, imagem: "bolo_chocolate_trufado.jpg", disponivel: true, categoria: "Bolo" },
+        p7: { nome: "Bolo no Pote de Morango", descricao: "Delicioso bolo no pote com camadas de massa, creme e morangos frescos.", preco: 18.00, imagem: "bolo_pote_morango.jpg", disponivel: true, categoria: "Bolo no Pote" },
+        p8: { nome: "Copo da Felicidade", descricao: "Camadas de brownie, brigadeiro, chantilly e frutas vermelhas no copo.", preco: 25.00, imagem: "copo_felicidade.jpg", disponivel: true, categoria: "Copo" },
+        p9: { nome: "Coxinha de Frango", descricao: "Tradicional coxinha de frango com catupiry, crocante por fora e cremosa por dentro.", preco: 8.00, imagem: "coxinha_frango.jpg", disponivel: true, categoria: "Salgados" },
+        p10: { nome: "Refrigerante Lata", descricao: "Coca-Cola, Guaraná ou Soda Limonada (350ml).", preco: 6.00, imagem: "refrigerante.jpg", disponivel: true, categoria: "Bebidas" }
+    },
+    cupons: {
+        BRITS10: { tipo: "percentual", valor: 10 },
+        BEMVINDO5: { tipo: "fixo", valor: 5 },
+        FRETEGRATIS: { tipo: "frete_gratis" }
+    }
+};
+
+function importarDadosIniciais() {
+    if (!confirm('Isso vai cadastrar os produtos e cupons que já existiam no cardápio. Só faça isso uma vez. Continuar?')) return;
+    Promise.all([
+        db.ref('produtos').set(DADOS_INICIAIS.produtos),
+        db.ref('cupons').set(DADOS_INICIAIS.cupons)
+    ]).then(() => {
+        alert('Importado com sucesso! Os produtos e cupons já aparecem abaixo.');
+    }).catch(err => alert('Erro ao importar: ' + err.message));
+}
+
+// ---------- PRODUTOS ----------
+
+function montarLinhaProduto(id, produto) {
+    const div = document.createElement('div');
+    div.classList.add('produto-admin-item');
+    div.innerHTML = `
+        <div class="produto-admin-linha">
+            <input type="text" id="prodNome_${id}" value="${produto.nome || ''}" placeholder="Nome do produto">
+            <label class="produto-disponivel-check">
+                <input type="checkbox" id="prodDisp_${id}" ${produto.disponivel !== false ? 'checked' : ''}> Disponível
+            </label>
+        </div>
+        <textarea id="prodDesc_${id}" placeholder="Descrição" rows="2">${produto.descricao || ''}</textarea>
+        <div class="produto-admin-linha">
+            <input type="number" step="0.01" min="0" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Preço (R$)">
+            <input type="number" step="0.01" min="0" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Preço 'de' (oferta, opcional)">
+        </div>
+        <div class="produto-admin-linha">
+            <input type="text" id="prodImagem_${id}" value="${produto.imagem || ''}" placeholder="nome-da-imagem.jpg">
+            <input type="text" id="prodCategoria_${id}" value="${produto.categoria || ''}" placeholder="Categoria">
+        </div>
+        <div class="produto-admin-acoes">
+            <button class="btn-salvar-produto" onclick="salvarProduto('${id}')">💾 Salvar</button>
+            <button class="btn-excluir-produto" onclick="excluirProduto('${id}')">🗑️ Excluir</button>
+        </div>
+    `;
+    return div;
+}
+
+function escutarProdutos() {
+    db.ref('produtos').on('value', snap => {
+        const val = snap.val() || {};
+        const ids = Object.keys(val);
+        const lista = document.getElementById('produtosAdminList');
+        const btnImportar = document.getElementById('btnImportarDados');
+
+        btnImportar.style.display = ids.length === 0 ? 'block' : 'none';
+
+        lista.innerHTML = '';
+        if (ids.length === 0) {
+            lista.innerHTML = '<p class="vazio">Nenhum produto cadastrado ainda.</p>';
+            return;
+        }
+        ids.forEach(id => lista.appendChild(montarLinhaProduto(id, val[id])));
+    });
+}
+
+function salvarProduto(id) {
+    const nome = document.getElementById('prodNome_' + id).value.trim();
+    const descricao = document.getElementById('prodDesc_' + id).value.trim();
+    const preco = parseFloat(document.getElementById('prodPreco_' + id).value);
+    const precoOriginalRaw = document.getElementById('prodPrecoOriginal_' + id).value;
+    const imagem = document.getElementById('prodImagem_' + id).value.trim();
+    const categoria = document.getElementById('prodCategoria_' + id).value.trim();
+    const disponivel = document.getElementById('prodDisp_' + id).checked;
+
+    if (!nome || isNaN(preco) || !imagem || !categoria) {
+        alert('Preencha nome, preço, imagem e categoria antes de salvar.');
+        return;
+    }
+
+    const dados = { nome, descricao, preco, imagem, categoria, disponivel, precoOriginal: null };
+    if (precoOriginalRaw && parseFloat(precoOriginalRaw) > preco) {
+        dados.precoOriginal = parseFloat(precoOriginalRaw);
+    }
+
+    db.ref('produtos/' + id).update(dados).catch(err => alert('Erro ao salvar produto: ' + err.message));
+}
+
+function excluirProduto(id) {
+    if (!confirm('Excluir este produto do cardápio? Essa ação não pode ser desfeita.')) return;
+    db.ref('produtos/' + id).remove().catch(err => alert('Erro ao excluir produto: ' + err.message));
+}
+
+function adicionarNovoProduto() {
+    const novoRef = db.ref('produtos').push();
+    novoRef.set({
+        nome: 'Novo produto',
+        descricao: '',
+        preco: 0,
+        imagem: '',
+        categoria: 'Outros',
+        disponivel: false
+    }).catch(err => alert('Erro ao criar produto: ' + err.message));
+}
+
+// ---------- CUPONS ----------
+
+function montarCupomLinha(codigo, cupom) {
+    const div = document.createElement('div');
+    div.classList.add('cupom-admin-item');
+    let detalhe = 'Frete grátis';
+    if (cupom.tipo === 'percentual') detalhe = `${cupom.valor}% de desconto`;
+    else if (cupom.tipo === 'fixo') detalhe = `R$ ${Number(cupom.valor).toFixed(2).replace('.', ',')} de desconto`;
+
+    div.innerHTML = `
+        <div class="cupom-admin-info">
+            <strong>${codigo}</strong>
+            <span>${detalhe}</span>
+        </div>
+        <button class="btn-excluir-cupom" onclick="excluirCupom('${codigo}')">🗑️</button>
+    `;
+    return div;
+}
+
+function escutarCupons() {
+    db.ref('cupons').on('value', snap => {
+        const val = snap.val() || {};
+        const codigos = Object.keys(val);
+        const lista = document.getElementById('cuponsAdminList');
+        lista.innerHTML = '';
+        if (codigos.length === 0) {
+            lista.innerHTML = '<p class="vazio">Nenhum cupom cadastrado.</p>';
+            return;
+        }
+        codigos.forEach(codigo => lista.appendChild(montarCupomLinha(codigo, val[codigo])));
+    });
+}
+
+function atualizarCampoValorCupom() {
+    const tipo = document.getElementById('novoCupomTipo').value;
+    document.getElementById('novoCupomValor').style.display = tipo === 'frete_gratis' ? 'none' : 'block';
+}
+
+function adicionarCupom() {
+    const codigo = document.getElementById('novoCupomCodigo').value.trim().toUpperCase();
+    const tipo = document.getElementById('novoCupomTipo').value;
+    const valorInput = document.getElementById('novoCupomValor').value;
+
+    if (!codigo) { alert('Digite um código pro cupom.'); return; }
+    if (tipo !== 'frete_gratis' && (!valorInput || Number(valorInput) <= 0)) {
+        alert('Digite um valor válido pro desconto.');
+        return;
+    }
+
+    const dadosCupom = tipo === 'frete_gratis' ? { tipo } : { tipo, valor: Number(valorInput) };
+
+    db.ref('cupons/' + codigo).set(dadosCupom)
+        .then(() => {
+            document.getElementById('novoCupomCodigo').value = '';
+            document.getElementById('novoCupomValor').value = '';
+        })
+        .catch(err => alert('Erro ao salvar cupom: ' + err.message));
+}
+
+function excluirCupom(codigo) {
+    if (!confirm(`Excluir o cupom "${codigo}"?`)) return;
+    db.ref('cupons/' + codigo).remove().catch(err => alert('Erro ao excluir cupom: ' + err.message));
+}
+
 function iniciarEscutaPedidos() {
     document.getElementById('statusConexao').textContent = 'Conectado — atualizando em tempo real';
 
     escutarConfigLoja();
+    escutarProdutos();
+    escutarCupons();
 
     const refPendentes = db.ref('pedidos').orderByChild('status').equalTo('pendente');
     const listaPendentesEl = document.getElementById('listaPendentes');
