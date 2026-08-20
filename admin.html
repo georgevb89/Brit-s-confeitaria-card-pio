@@ -57,6 +57,30 @@
             </section>
 
             <section>
+                <h2>📦 Produtos</h2>
+                <button id="btnImportarDados" class="btn-importar-dados" onclick="importarDadosIniciais()" style="display:none;">
+                    ⬆️ Importar produtos e cupons que já existiam no cardápio
+                </button>
+                <div id="produtosAdminList" class="produtos-admin-list"></div>
+                <button class="btn-novo-produto" onclick="adicionarNovoProduto()">+ Adicionar produto</button>
+            </section>
+
+            <section>
+                <h2>🎟️ Cupons de desconto</h2>
+                <div id="cuponsAdminList" class="cupons-admin-list"></div>
+                <div class="cupom-novo-form">
+                    <input type="text" id="novoCupomCodigo" placeholder="Código (ex: BRITS10)">
+                    <select id="novoCupomTipo" onchange="atualizarCampoValorCupom()">
+                        <option value="percentual">Percentual (%)</option>
+                        <option value="fixo">Valor fixo (R$)</option>
+                        <option value="frete_gratis">Frete grátis</option>
+                    </select>
+                    <input type="number" id="novoCupomValor" placeholder="Valor" min="0" step="0.01">
+                    <button onclick="adicionarCupom()">+ Adicionar cupom</button>
+                </div>
+            </section>
+
+            <section>
                 <h2>🔔 Pedidos novos <span id="contadorPendentes" class="badge-contador">0</span></h2>
                 <div id="listaPendentes" class="lista-pedidos">
                     <p class="vazio">Nenhum pedido novo no momento.</p>
