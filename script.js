@@ -1,98 +1,8 @@
 console.log("O script.js foi carregado com sucesso!");
 
-/* ===================================================================
-   COMO EDITAR OS PRODUTOS:
-   - disponivel: true/false -> mostra ou "apaga" o produto (com selo Indisponível)
-   - precoOriginal (opcional): se adicionar esse campo com um valor MAIOR que o
-     "preco", o produto aparece com o preço antigo riscado e o selo 🔥 Oferta.
-     Se não quiser oferta, é só não incluir o campo "precoOriginal".
-   Exemplo de produto em oferta:
-     { nome:"Exemplo", descricao:"...", preco: 20.00, precoOriginal: 25.00, imagem:"...", disponivel:true, categoria:"..." }
-   =================================================================== */
-
-// Array de produtos (agora com a propriedade 'disponivel' e 'categoria')
-const produtos = [
-    {
-        nome: "Bolo de Cenoura com Brigadeiro",
-        descricao: "Delicioso bolo de cenoura fofinho com uma generosa cobertura de brigadeiro cremoso.",
-        preco: 45.00,
-        imagem: "bolo_cenoura.jpg",
-        disponivel: true, // NOVO: Disponibilidade do produto
-        categoria: "Bolo" // NOVO: Categoria do produto
-    },
-    {
-        nome: "Torta de Limão",
-        descricao: "Clássica torta de limão com base crocante e merengue suíço maçaricado.",
-        preco: 38.00,
-        imagem: "torta_limao.jpg",
-        disponivel: true,
-        categoria: "Sobremesa"
-    },
-    {
-        nome: "Brigadeiro Gourmet",
-        descricao: "Caixa com 6 unidades de brigadeiros gourmet variados (tradicional, ninho, churros).",
-        preco: 25.00,
-        imagem: "brigadeiro_gourmet.jpg",
-        disponivel: true,
-        categoria: "Brigadeiro"
-    },
-    {
-        nome: "Cupcake de Chocolate",
-        descricao: "Cupcake macio de chocolate com cobertura de ganache e granulado.",
-        preco: 12.00,
-        imagem: "cupcake_chocolate.jpg",
-        disponivel: false, // Exemplo de produto indisponível
-        categoria: "Bolo"
-    },
-    {
-        nome: "Pudim de Leite Condensado",
-        descricao: "Tradicional pudim de leite condensado com calda de caramelo.",
-        preco: 30.00,
-        imagem: "pudim_leite.jpg",
-        disponivel: true,
-        categoria: "Sobremesa"
-    },
-    {
-        nome: "Bolo de Chocolate Trufado",
-        descricao: "Bolo intenso de chocolate com recheio e cobertura de trufa cremosa.",
-        preco: 60.00,
-        imagem: "bolo_chocolate_trufado.jpg",
-        disponivel: true,
-        categoria: "Bolo"
-    },
-    {
-        nome: "Bolo no Pote de Morango",
-        descricao: "Delicioso bolo no pote com camadas de massa, creme e morangos frescos.",
-        preco: 18.00,
-        imagem: "bolo_pote_morango.jpg",
-        disponivel: true,
-        categoria: "Bolo no Pote"
-    },
-    {
-        nome: "Copo da Felicidade",
-        descricao: "Camadas de brownie, brigadeiro, chantilly e frutas vermelhas no copo.",
-        preco: 25.00,
-        imagem: "copo_felicidade.jpg",
-        disponivel: true,
-        categoria: "Copo"
-    },
-    {
-        nome: "Coxinha de Frango",
-        descricao: "Tradicional coxinha de frango com catupiry, crocante por fora e cremosa por dentro.",
-        preco: 8.00,
-        imagem: "coxinha_frango.jpg",
-        disponivel: true,
-        categoria: "Salgados"
-    },
-    {
-        nome: "Refrigerante Lata",
-        descricao: "Coca-Cola, Guaraná ou Soda Limonada (350ml).",
-        preco: 6.00,
-        imagem: "refrigerante.jpg",
-        disponivel: true,
-        categoria: "Bebidas"
-    }
-];
+// Produtos e cupons agora vêm do Firebase (gerenciados pelo painel admin.html).
+// Começam vazios e são preenchidos assim que a função escutarProdutos()/escutarCupons() carregar os dados.
+let produtos = [];
 
 // Carrega o carrinho do Local Storage ou inicializa como vazio
 let carrinho = JSON.parse(localStorage.getItem('carrinhoBritS')) || [];
@@ -203,17 +113,11 @@ let tipoEntregaAtual = 'retirada';
 let formaPagamentoAtual = 'Pix';
 
 /* ===================================================================
-   CUPONS DE DESCONTO
-   Edite aqui pra criar, mudar ou remover cupons. Tipos possíveis:
-   - "percentual": desconta uma porcentagem do subtotal (valor: 10 = 10%)
-   - "fixo": desconta um valor fixo em reais do subtotal
-   - "frete_gratis": zera o valor da entrega (não desconta o subtotal)
+   Os cupons de desconto agora são gerenciados pelo painel (admin.html),
+   dentro da seção "🎟️ Cupons de desconto". Aqui só carregamos o que
+   estiver cadastrado no Firebase.
    =================================================================== */
-const cupons = {
-    "BRITS10": { tipo: "percentual", valor: 10 },
-    "BEMVINDO5": { tipo: "fixo", valor: 5 },
-    "FRETEGRATIS": { tipo: "frete_gratis" }
-};
+let cupons = {};
 
 let cupomAplicado = null; // { codigo, tipo, valor }
 
@@ -330,6 +234,30 @@ function escutarStatusLoja() {
     setInterval(() => {
         firebase.database().ref('configuracao/loja').once('value').then(snap => atualizarStatusLoja(snap.val()));
     }, 60000);
+}
+
+// Carrega o cardápio do Firebase e re-renderiza sozinho sempre que algo mudar no painel
+function escutarProdutos() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
+        listaProdutosDiv.innerHTML = '<p class="cardapio-erro">Não foi possível carregar o cardápio agora. Recarregue a página em instantes.</p>';
+        return;
+    }
+    firebase.database().ref('produtos').on('value', snap => {
+        const val = snap.val() || {};
+        produtos = Object.values(val).filter(p => p && p.nome);
+        sincronizarPrecosCarrinho();
+        renderizarCategorias();
+        renderizarProdutos();
+        atualizarCarrinhoHTML();
+    });
+}
+
+// Carrega os cupons de desconto cadastrados no painel
+function escutarCupons() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    firebase.database().ref('cupons').on('value', snap => {
+        cupons = snap.val() || {};
+    });
 }
 
 function salvarPedidoNoPainel(dadosPedido) {
@@ -857,10 +785,9 @@ function sincronizarPrecosCarrinho() {
 }
 
 // Chama as funções iniciais ao carregar a página
-sincronizarPrecosCarrinho();
-renderizarProdutos();
+escutarProdutos(); // Carrega o cardápio do Firebase (e re-renderiza sozinho quando o painel mudar algo)
+escutarCupons(); // Carrega os cupons de desconto cadastrados no painel
 atualizarCarrinhoHTML();
-renderizarCategorias(); // NOVO: Renderiza as categorias ao carregar a página
 carregarDadosClienteSalvos(); // Preenche nome/telefone/endereço da última compra
 verificarPedidoSalvo(); // Mostra o status do último pedido, se ainda for recente
 escutarStatusLoja(); // Mostra se a loja está aberta ou fechada agora

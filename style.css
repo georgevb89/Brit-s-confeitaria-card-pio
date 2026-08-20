@@ -604,3 +604,10 @@ footer {
     background: var(--bg);
     color: var(--text);
 }
+
+.cardapio-erro {
+    text-align: center;
+    color: var(--muted);
+    padding: 30px 10px;
+    grid-column: 1 / -1;
+}
