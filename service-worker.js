@@ -5,6 +5,36 @@
 
 const CACHE_NAME = 'brits-confeitaria-imagens-v1';
 
+// --- Notificações push (Firebase Cloud Messaging) ---
+// Precisa rodar aqui dentro do service worker pra funcionar mesmo com o site fechado.
+importScripts('https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.16.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+    apiKey: "AIzaSyAq9paZSfPwKopYA2HciyNl04ATAdLX0JE",
+    authDomain: "brits-confeitaria.firebaseapp.com",
+    databaseURL: "https://brits-confeitaria-default-rtdb.firebaseio.com",
+    projectId: "brits-confeitaria",
+    storageBucket: "brits-confeitaria.firebasestorage.app",
+    messagingSenderId: "866705536686",
+    appId: "1:866705536686:web:95cce3cc013cae5dd4df3f"
+});
+
+try {
+    const messaging = firebase.messaging();
+    messaging.onBackgroundMessage((payload) => {
+        const titulo = (payload.notification && payload.notification.title) || "Brit's Confeitaria";
+        const opcoes = {
+            body: (payload.notification && payload.notification.body) || '',
+            icon: 'logopng.png',
+            badge: 'logopng.png'
+        };
+        self.registration.showNotification(titulo, opcoes);
+    });
+} catch (e) {
+    // Se o navegador não suportar, apenas ignora — o resto do site continua funcionando normal
+}
+
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });

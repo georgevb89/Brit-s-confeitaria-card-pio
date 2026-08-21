@@ -824,3 +824,52 @@ footer {
 .lightbox-seta:hover { background: rgba(255,255,255,0.3); }
 .lightbox-anterior { left: 12px; }
 .lightbox-proximo { right: 12px; }
+
+/* Botão de ativar notificações */
+.btn-notificacoes {
+    width: 100%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    color: var(--primary);
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.9em;
+    cursor: pointer;
+    margin-top: 4px;
+}
+.btn-notificacoes:hover { background: var(--bg); }
+.btn-notificacoes:disabled {
+    background: #eef7f0;
+    border-color: #b9e0c2;
+    color: #1e6b34;
+    cursor: default;
+}
+
+/* Toast de notificação em primeiro plano */
+.toast-notificacao {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 300;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--primary);
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-width: 340px;
+    width: calc(100% - 32px);
+    flex-direction: column;
+    gap: 4px;
+}
+.toast-notificacao span:first-child {
+    font-weight: 700;
+    color: var(--primary);
+}
+.toast-notificacao span:last-child {
+    font-size: 0.9em;
+    color: var(--text);
+}

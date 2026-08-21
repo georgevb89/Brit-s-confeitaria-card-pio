@@ -63,6 +63,8 @@
                 <div class="destaque-item"><div class="emoji">🛵</div><div class="txt">Entrega na sua casa</div></div>
                 <div class="destaque-item"><div class="emoji">💳</div><div class="txt">Pix, cartão ou dinheiro</div></div>
             </div>
+
+            <button id="btnAtivarNotificacoes" class="btn-notificacoes" onclick="ativarNotificacoes()">🔔 Ativar notificações de ofertas e novidades</button>
         </div>
 
         <section id="produtos-destaque" class="container">
@@ -154,9 +156,15 @@
         <button type="button" class="lightbox-seta lightbox-proximo" onclick="lightboxNavegar(1)">›</button>
     </div>
 
+    <div id="toastNotificacao" class="toast-notificacao" style="display:none;">
+        <span id="toastNotificacaoTitulo"></span>
+        <span id="toastNotificacaoCorpo"></span>
+    </div>
+
     <!-- Firebase (para salvar os pedidos no painel da loja) -->
     <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-messaging-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
