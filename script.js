@@ -242,10 +242,11 @@ function escutarProdutos() {
         listaProdutosDiv.innerHTML = '<p class="cardapio-erro">Não foi possível carregar o cardápio agora. Recarregue a página em instantes.</p>';
         return;
     }
-    firebase.database().ref('produtos').orderByChild('criadoEm').on('value', snap => {
-        const lista = [];
-        snap.forEach(child => lista.push(child.val()));
-        produtos = lista.filter(p => p && p.nome);
+    firebase.database().ref('produtos').on('value', snap => {
+        const val = snap.val() || {};
+        const lista = Object.values(val).filter(p => p && p.nome);
+        lista.sort((a, b) => (a.criadoEm || 0) - (b.criadoEm || 0));
+        produtos = lista;
         sincronizarPrecosCarrinho();
         renderizarCategorias();
         renderizarProdutos();

@@ -309,12 +309,13 @@ function montarLinhaProduto(id, produto) {
 }
 
 function escutarProdutos() {
-    db.ref('produtos').orderByChild('criadoEm').on('value', snap => {
+    db.ref('produtos').on('value', snap => {
         const lista = document.getElementById('produtosAdminList');
         const btnImportar = document.getElementById('btnImportarDados');
 
-        const itens = [];
-        snap.forEach(child => itens.push({ id: child.key, produto: child.val() }));
+        const val = snap.val() || {};
+        const itens = Object.entries(val).map(([id, produto]) => ({ id, produto }));
+        itens.sort((a, b) => (a.produto.criadoEm || 0) - (b.produto.criadoEm || 0));
 
         btnImportar.style.display = itens.length === 0 ? 'block' : 'none';
 
