@@ -497,10 +497,8 @@ function renderizarProdutos() {
             <p class="preco">
                 ${emOferta ? `<span class="preco-original">R$ ${produto.precoOriginal.toFixed(2).replace('.', ',')}</span> ` : ''}R$ ${produto.preco.toFixed(2).replace('.', ',')}
             </p>
-            ${produto.disponivel
-                ? (temVariantes
-                    ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
-                    : `<input type="text" class="observacao-item" placeholder="Personalizar (opcional): sabor, tamanho..." maxlength="80">`)
+            ${produto.disponivel && temVariantes
+                ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
                 : ''
             }
             ${produto.disponivel

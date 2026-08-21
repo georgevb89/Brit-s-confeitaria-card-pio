@@ -292,14 +292,15 @@ function montarLinhaProduto(id, produto) {
         </div>
         <textarea id="prodDesc_${id}" placeholder="Descrição" rows="2">${produto.descricao || ''}</textarea>
 
-        <label class="campo-label">Preço atual</label>
         <div class="produto-admin-linha">
-            <input type="text" inputmode="decimal" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Ex: 45,00">
-        </div>
-
-        <label class="campo-label">Preço "de" (só preencha se estiver em oferta — precisa ser MAIOR que o preço atual)</label>
-        <div class="produto-admin-linha">
-            <input type="text" inputmode="decimal" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Ex: 55,00 (deixe em branco se não tiver oferta)">
+            <div class="campo-com-label">
+                <label class="campo-label">Preço atual</label>
+                <input type="text" inputmode="decimal" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Ex: 45,00">
+            </div>
+            <div class="campo-com-label">
+                <label class="campo-label">Preço "de" (oferta — precisa ser MAIOR)</label>
+                <input type="text" inputmode="decimal" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Ex: 55,00 (opcional)">
+            </div>
         </div>
 
         <div class="produto-admin-linha">

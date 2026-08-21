@@ -531,6 +531,16 @@ body {
     margin: 8px 0 4px;
 }
 
+.campo-com-label {
+    flex: 1;
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+}
+.campo-com-label .campo-label {
+    margin: 0 0 4px;
+}
+
 .previa-variantes {
     margin: 6px 0 8px;
     font-size: 0.8em;
