@@ -522,3 +522,31 @@ body {
     cursor: pointer;
 }
 .cupom-novo-form button:hover { background: var(--primary-dark); }
+
+.campo-label {
+    display: block;
+    font-size: 0.75em;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 8px 0 4px;
+}
+
+.previa-variantes {
+    margin: 6px 0 8px;
+    font-size: 0.8em;
+    color: var(--muted);
+}
+.previa-pill {
+    display: inline-block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-weight: 600;
+    margin: 2px 2px 0 0;
+}
+.previa-aviso {
+    color: #a56b00;
+    font-weight: 600;
+}

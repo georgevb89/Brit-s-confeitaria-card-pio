@@ -291,21 +291,45 @@ function montarLinhaProduto(id, produto) {
             </label>
         </div>
         <textarea id="prodDesc_${id}" placeholder="Descrição" rows="2">${produto.descricao || ''}</textarea>
+
+        <label class="campo-label">Preço atual</label>
         <div class="produto-admin-linha">
-            <input type="text" inputmode="decimal" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Preço (R$) — ex: 45,00">
-            <input type="text" inputmode="decimal" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Preço 'de' (oferta, opcional)">
+            <input type="text" inputmode="decimal" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Ex: 45,00">
         </div>
+
+        <label class="campo-label">Preço "de" (só preencha se estiver em oferta — precisa ser MAIOR que o preço atual)</label>
+        <div class="produto-admin-linha">
+            <input type="text" inputmode="decimal" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Ex: 55,00 (deixe em branco se não tiver oferta)">
+        </div>
+
         <div class="produto-admin-linha">
             <input type="text" id="prodImagem_${id}" value="${produto.imagem || ''}" placeholder="nome-da-imagem.jpg">
             <input type="text" id="prodCategoria_${id}" value="${produto.categoria || ''}" placeholder="Categoria">
         </div>
-        <input type="text" id="prodVariantes_${id}" value="${(produto.variantes || []).join(', ')}" placeholder="Sabores/opções disponíveis, separados por vírgula (ex: Chocolate, Morango, Baunilha)">
+
+        <label class="campo-label">Sabores/opções (digite cada um separado por VÍRGULA — deixe em branco se não tiver)</label>
+        <input type="text" id="prodVariantes_${id}" value="${(produto.variantes || []).join(', ')}" placeholder="Ex: Chocolate, Morango, Baunilha" oninput="atualizarPreviaVariantes('${id}')">
+        <div id="previaVariantes_${id}" class="previa-variantes"></div>
+
         <div class="produto-admin-acoes">
             <button class="btn-salvar-produto" onclick="salvarProduto('${id}')">💾 Salvar</button>
             <button class="btn-excluir-produto" onclick="excluirProduto('${id}')">🗑️ Excluir</button>
         </div>
     `;
     return div;
+}
+
+// Mostra na hora quantos "sabores" foram reconhecidos, pra confirmar que separou certo por vírgula
+function atualizarPreviaVariantes(id) {
+    const texto = document.getElementById('prodVariantes_' + id).value.trim();
+    const previa = document.getElementById('previaVariantes_' + id);
+    if (!texto) { previa.innerHTML = ''; return; }
+    const partes = texto.split(',').map(v => v.trim()).filter(v => v.length > 0);
+    if (partes.length <= 1) {
+        previa.innerHTML = `<span class="previa-aviso">⚠️ Só reconheci ${partes.length} opção. Se quiser mais de uma, separe com vírgula (,).</span>`;
+    } else {
+        previa.innerHTML = `Vai aparecer assim: ` + partes.map(v => `<span class="previa-pill">${v}</span>`).join(' ');
+    }
 }
 
 function escutarProdutos() {
