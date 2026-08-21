@@ -607,3 +607,20 @@ body {
     color: #c0392b;
     border-color: #f0b7b7;
 }
+
+.previa-imagens {
+    margin: 6px 0 8px;
+}
+.previa-imagem-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 0 6px 6px 0;
+    background: var(--bg);
+}
+.previa-imagem-thumb.previa-imagem-erro {
+    border-color: #c0392b;
+    opacity: 0.35;
+}

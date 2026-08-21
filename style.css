@@ -728,3 +728,99 @@ footer {
 .boas-vindas-conteudo button:hover {
     background: var(--primary-dark);
 }
+
+/* Carrossel de fotos do produto */
+.produto-imagem-wrap {
+    position: relative;
+}
+.produto-imagem-atual {
+    cursor: zoom-in;
+}
+.carrossel-seta {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+.carrossel-seta:hover { background: rgba(0,0,0,0.65); }
+.carrossel-anterior { left: 8px; }
+.carrossel-proximo { right: 8px; }
+.carrossel-dots {
+    position: absolute;
+    bottom: 18px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+.carrossel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.6);
+}
+.carrossel-dot.ativo {
+    background: #fff;
+}
+
+/* Visualizador de foto em tela cheia (lightbox) */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.92);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.lightbox img {
+    max-width: 100%;
+    max-height: 88vh;
+    border-radius: 8px;
+}
+.lightbox-fechar {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+.lightbox-fechar:hover { background: rgba(255,255,255,0.3); }
+.lightbox-seta {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.6em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.lightbox-seta:hover { background: rgba(255,255,255,0.3); }
+.lightbox-anterior { left: 12px; }
+.lightbox-proximo { right: 12px; }

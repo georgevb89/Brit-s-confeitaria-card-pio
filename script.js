@@ -112,6 +112,40 @@ let categoriaAtual = 'Todos';
 let tipoEntregaAtual = 'retirada';
 let formaPagamentoAtual = 'Pix';
 
+// Guarda a lista de imagens de cada carrossel (preenchido a cada renderizarProdutos())
+let carrosselImagensRegistro = {};
+
+// Visualizador de foto em tela cheia (lightbox)
+let lightboxImagens = [];
+let lightboxIndiceAtual = 0;
+
+function abrirLightbox(imagens, indiceInicial) {
+    if (!imagens || imagens.length === 0) return;
+    lightboxImagens = imagens;
+    lightboxIndiceAtual = indiceInicial || 0;
+    atualizarLightbox();
+    const lb = document.getElementById('lightboxImagem');
+    if (lb) lb.style.display = 'flex';
+}
+
+function atualizarLightbox() {
+    const img = document.getElementById('lightboxImg');
+    if (img) img.src = lightboxImagens[lightboxIndiceAtual];
+    document.querySelectorAll('.lightbox-seta').forEach(seta => {
+        seta.style.display = lightboxImagens.length > 1 ? 'flex' : 'none';
+    });
+}
+
+function lightboxNavegar(delta) {
+    lightboxIndiceAtual = (lightboxIndiceAtual + delta + lightboxImagens.length) % lightboxImagens.length;
+    atualizarLightbox();
+}
+
+function fecharLightbox() {
+    const lb = document.getElementById('lightboxImagem');
+    if (lb) lb.style.display = 'none';
+}
+
 // Ordem de categorias definida pelo dono da loja no painel (opcional)
 let ordemCategoriasSalva = [];
 
@@ -521,6 +555,10 @@ function renderizarProdutos() {
     // Agrupa os produtos por categoria, respeitando a ordem definida no painel
     const categoriasNaOrdem = ordenarCategorias([...new Set(produtos.map(produto => produto.categoria))]);
 
+    // Guarda a lista de imagens de cada carrossel, pra usar nos cliques (setas e lightbox)
+    carrosselImagensRegistro = {};
+    let contadorCarrossel = 0;
+
     categoriasNaOrdem.forEach(categoria => {
         const produtosDaCategoria = produtos.filter(produto => produto.categoria === categoria);
         if (produtosDaCategoria.length === 0) return;
@@ -548,9 +586,24 @@ function renderizarProdutos() {
 
             const temVariantes = Array.isArray(produto.variantes) && produto.variantes.length > 0;
 
+            // Aceita tanto o campo antigo "imagem" (uma foto) quanto o novo "imagens" (várias fotos)
+            const imagens = (Array.isArray(produto.imagens) && produto.imagens.length > 0)
+                ? produto.imagens
+                : (produto.imagem ? [produto.imagem] : []);
+            const carrosselId = 'carrossel-' + (contadorCarrossel++);
+            carrosselImagensRegistro[carrosselId] = imagens;
+            const temVariasImagens = imagens.length > 1;
+
             produtoItemDiv.innerHTML = `
                 ${emOferta ? `<div class="produto-tag">🔥 Oferta</div>` : ''}
-                <img src="${produto.imagem}" alt="${produto.nome}">
+                <div class="produto-imagem-wrap" id="${carrosselId}" data-indice="0">
+                    <img src="${imagens[0] || ''}" alt="${produto.nome}" class="produto-imagem-atual">
+                    ${temVariasImagens ? `
+                        <button type="button" class="carrossel-seta carrossel-anterior">‹</button>
+                        <button type="button" class="carrossel-seta carrossel-proximo">›</button>
+                        <div class="carrossel-dots">${imagens.map((_, i) => `<span class="carrossel-dot${i === 0 ? ' ativo' : ''}"></span>`).join('')}</div>
+                    ` : ''}
+                </div>
                 <h3>${produto.nome}</h3>
                 <p class="descricao">${produto.descricao}</p>
                 <p class="preco">
@@ -569,6 +622,42 @@ function renderizarProdutos() {
         });
 
         listaProdutosDiv.appendChild(gridEl);
+    });
+
+    // Interatividade do carrossel de fotos: setas trocam a imagem, clicar na foto abre o lightbox
+    document.querySelectorAll('.produto-imagem-wrap').forEach(wrap => {
+        const imagens = carrosselImagensRegistro[wrap.id] || [];
+        const imgEl = wrap.querySelector('.produto-imagem-atual');
+
+        function mostrarIndice(i) {
+            wrap.dataset.indice = i;
+            imgEl.src = imagens[i];
+            wrap.querySelectorAll('.carrossel-dot').forEach((dot, idx) => dot.classList.toggle('ativo', idx === i));
+        }
+
+        const btnAnterior = wrap.querySelector('.carrossel-anterior');
+        const btnProximo = wrap.querySelector('.carrossel-proximo');
+        if (btnAnterior) {
+            btnAnterior.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const atual = parseInt(wrap.dataset.indice, 10);
+                mostrarIndice((atual - 1 + imagens.length) % imagens.length);
+            });
+        }
+        if (btnProximo) {
+            btnProximo.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const atual = parseInt(wrap.dataset.indice, 10);
+                mostrarIndice((atual + 1) % imagens.length);
+            });
+        }
+
+        if (imgEl && imagens.length > 0) {
+            imgEl.addEventListener('click', () => {
+                const atual = parseInt(wrap.dataset.indice, 10) || 0;
+                abrirLightbox(imagens, atual);
+            });
+        }
     });
 
     // Clique num "sabor" seleciona ele e desmarca os outros do mesmo produto
@@ -953,3 +1042,20 @@ function fecharBoasVindas() {
 }
 
 mostrarBoasVindas();
+
+// Fecha o lightbox clicando fora da imagem, e permite navegar com o teclado (setas e Esc)
+document.addEventListener('DOMContentLoaded', () => {
+    const lb = document.getElementById('lightboxImagem');
+    if (lb) {
+        lb.addEventListener('click', (e) => {
+            if (e.target.id === 'lightboxImagem') fecharLightbox();
+        });
+    }
+});
+document.addEventListener('keydown', (e) => {
+    const lb = document.getElementById('lightboxImagem');
+    if (!lb || lb.style.display !== 'flex') return;
+    if (e.key === 'Escape') fecharLightbox();
+    if (e.key === 'ArrowLeft') lightboxNavegar(-1);
+    if (e.key === 'ArrowRight') lightboxNavegar(1);
+});

@@ -303,10 +303,11 @@ function montarLinhaProduto(id, produto) {
             </div>
         </div>
 
-        <div class="produto-admin-linha">
-            <input type="text" id="prodImagem_${id}" value="${produto.imagem || ''}" placeholder="nome-da-imagem.jpg">
-            <input type="text" id="prodCategoria_${id}" value="${produto.categoria || ''}" placeholder="Categoria">
-        </div>
+        <label class="campo-label">Foto(s) do produto (nomes dos arquivos, separados por VÍRGULA — a primeira é a foto principal)</label>
+        <input type="text" id="prodImagens_${id}" value="${(Array.isArray(produto.imagens) && produto.imagens.length ? produto.imagens : (produto.imagem ? [produto.imagem] : [])).join(', ')}" placeholder="Ex: bolo1.jpg, bolo2.jpg, bolo3.jpg" oninput="atualizarPreviaImagens('${id}')">
+        <div id="previaImagens_${id}" class="previa-imagens"></div>
+
+        <input type="text" id="prodCategoria_${id}" value="${produto.categoria || ''}" placeholder="Categoria">
 
         <label class="campo-label">Sabores/opções (digite cada um separado por VÍRGULA — deixe em branco se não tiver)</label>
         <input type="text" id="prodVariantes_${id}" value="${(produto.variantes || []).join(', ')}" placeholder="Ex: Chocolate, Morango, Baunilha" oninput="atualizarPreviaVariantes('${id}')">
@@ -321,6 +322,18 @@ function montarLinhaProduto(id, produto) {
 }
 
 // Mostra na hora quantos "sabores" foram reconhecidos, pra confirmar que separou certo por vírgula
+// Mostra as fotos de verdade (miniaturas), pra confirmar visualmente que os nomes dos arquivos estão certos
+function atualizarPreviaImagens(id) {
+    const input = document.getElementById('prodImagens_' + id);
+    const previa = document.getElementById('previaImagens_' + id);
+    if (!input || !previa) return;
+    const nomes = input.value.trim().split(',').map(v => v.trim()).filter(v => v.length > 0);
+    if (nomes.length === 0) { previa.innerHTML = ''; return; }
+    previa.innerHTML = nomes.map(nome =>
+        `<img src="${nome}" alt="${nome}" class="previa-imagem-thumb" onerror="this.classList.add('previa-imagem-erro')">`
+    ).join('');
+}
+
 function atualizarPreviaVariantes(id) {
     const texto = document.getElementById('prodVariantes_' + id).value.trim();
     const previa = document.getElementById('previaVariantes_' + id);
@@ -355,7 +368,10 @@ function escutarProdutos() {
             lista.innerHTML = '<p class="vazio">Nenhum produto cadastrado ainda.</p>';
             return;
         }
-        itens.forEach(({ id, produto }) => lista.appendChild(montarLinhaProduto(id, produto)));
+        itens.forEach(({ id, produto }) => {
+            lista.appendChild(montarLinhaProduto(id, produto));
+            atualizarPreviaImagens(id);
+        });
     });
 }
 
@@ -370,17 +386,19 @@ function salvarProduto(id) {
     const descricao = document.getElementById('prodDesc_' + id).value.trim();
     const preco = paraNumero(document.getElementById('prodPreco_' + id).value);
     const precoOriginal = paraNumero(document.getElementById('prodPrecoOriginal_' + id).value);
-    const imagem = document.getElementById('prodImagem_' + id).value.trim();
+    const imagensTexto = document.getElementById('prodImagens_' + id).value.trim();
     const categoria = document.getElementById('prodCategoria_' + id).value.trim();
     const disponivel = document.getElementById('prodDisp_' + id).checked;
     const variantesTexto = document.getElementById('prodVariantes_' + id).value.trim();
 
-    if (!nome || isNaN(preco) || !imagem || !categoria) {
-        alert('Preencha nome, preço, imagem e categoria antes de salvar.');
+    const imagens = imagensTexto ? imagensTexto.split(',').map(v => v.trim()).filter(v => v.length > 0) : [];
+
+    if (!nome || isNaN(preco) || imagens.length === 0 || !categoria) {
+        alert('Preencha nome, preço, ao menos uma foto e categoria antes de salvar.');
         return;
     }
 
-    const dados = { nome, descricao, preco, imagem, categoria, disponivel, precoOriginal: null, variantes: null };
+    const dados = { nome, descricao, preco, imagem: imagens[0], imagens, categoria, disponivel, precoOriginal: null, variantes: null };
 
     if (!isNaN(precoOriginal) && precoOriginal > preco) {
         dados.precoOriginal = precoOriginal;
@@ -405,6 +423,7 @@ function adicionarNovoProduto() {
         descricao: '',
         preco: 0,
         imagem: '',
+        imagens: [],
         categoria: 'Outros',
         disponivel: false,
         criadoEm: firebase.database.ServerValue.TIMESTAMP

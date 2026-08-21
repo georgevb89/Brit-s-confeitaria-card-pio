@@ -146,6 +146,14 @@
         </div>
     </footer>
 
+    <!-- Visualizador de foto em tela cheia -->
+    <div id="lightboxImagem" class="lightbox" style="display:none;">
+        <button type="button" class="lightbox-fechar" onclick="fecharLightbox()">✕</button>
+        <button type="button" class="lightbox-seta lightbox-anterior" onclick="lightboxNavegar(-1)">‹</button>
+        <img id="lightboxImg" src="" alt="Foto ampliada do produto">
+        <button type="button" class="lightbox-seta lightbox-proximo" onclick="lightboxNavegar(1)">›</button>
+    </div>
+
     <!-- Firebase (para salvar os pedidos no painel da loja) -->
     <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
