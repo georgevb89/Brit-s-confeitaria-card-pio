@@ -467,46 +467,69 @@ async function calcularFrete() {
 }
 
 // Função para renderizar os produtos na página
+// Transforma o nome de uma categoria num id seguro pra usar como âncora (ex: "Bolo no Pote" -> "bolo-no-pote")
+function categoriaParaId(categoria) {
+    return 'categoria-' + (categoria || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
 function renderizarProdutos() {
     listaProdutosDiv.innerHTML = '';
 
-    // Filtra os produtos pela categoria atual, se não for 'Todos'
-    const produtosFiltrados = categoriaAtual === 'Todos'
-        ? produtos
-        : produtos.filter(produto => produto.categoria === categoriaAtual);
+    // Agrupa os produtos por categoria, na ordem em que as categorias aparecem
+    const categoriasNaOrdem = [...new Set(produtos.map(produto => produto.categoria))];
 
-    produtosFiltrados.forEach(produto => {
-        const produtoItemDiv = document.createElement('div');
-        produtoItemDiv.classList.add('produto-item');
+    categoriasNaOrdem.forEach(categoria => {
+        const produtosDaCategoria = produtos.filter(produto => produto.categoria === categoria);
+        if (produtosDaCategoria.length === 0) return;
 
-        // Adiciona a classe 'indisponivel' se o produto não estiver disponível
-        if (!produto.disponivel) {
-            produtoItemDiv.classList.add('indisponivel');
-        }
+        const tituloEl = document.createElement('h3');
+        tituloEl.classList.add('categoria-titulo');
+        tituloEl.id = categoriaParaId(categoria);
+        tituloEl.textContent = categoria;
+        listaProdutosDiv.appendChild(tituloEl);
 
-        // Verifica se o produto está em oferta (tem precoOriginal maior que o preco atual)
-        const emOferta = produto.precoOriginal && produto.precoOriginal > produto.preco;
+        const gridEl = document.createElement('div');
+        gridEl.classList.add('categoria-grid');
 
-        const temVariantes = Array.isArray(produto.variantes) && produto.variantes.length > 0;
+        produtosDaCategoria.forEach(produto => {
+            const produtoItemDiv = document.createElement('div');
+            produtoItemDiv.classList.add('produto-item');
 
-        produtoItemDiv.innerHTML = `
-            ${emOferta ? `<div class="produto-tag">🔥 Oferta</div>` : ''}
-            <img src="${produto.imagem}" alt="${produto.nome}">
-            <h3>${produto.nome}</h3>
-            <p class="descricao">${produto.descricao}</p>
-            <p class="preco">
-                ${emOferta ? `<span class="preco-original">R$ ${produto.precoOriginal.toFixed(2).replace('.', ',')}</span> ` : ''}R$ ${produto.preco.toFixed(2).replace('.', ',')}
-            </p>
-            ${produto.disponivel && temVariantes
-                ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
-                : ''
+            // Adiciona a classe 'indisponivel' se o produto não estiver disponível
+            if (!produto.disponivel) {
+                produtoItemDiv.classList.add('indisponivel');
             }
-            ${produto.disponivel
-                ? `<button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>`
-                : `<button class="adicionar-carrinho indisponivel-btn" disabled>Indisponível</button>`
-            }
-        `;
-        listaProdutosDiv.appendChild(produtoItemDiv);
+
+            // Verifica se o produto está em oferta (tem precoOriginal maior que o preco atual)
+            const emOferta = produto.precoOriginal && produto.precoOriginal > produto.preco;
+
+            const temVariantes = Array.isArray(produto.variantes) && produto.variantes.length > 0;
+
+            produtoItemDiv.innerHTML = `
+                ${emOferta ? `<div class="produto-tag">🔥 Oferta</div>` : ''}
+                <img src="${produto.imagem}" alt="${produto.nome}">
+                <h3>${produto.nome}</h3>
+                <p class="descricao">${produto.descricao}</p>
+                <p class="preco">
+                    ${emOferta ? `<span class="preco-original">R$ ${produto.precoOriginal.toFixed(2).replace('.', ',')}</span> ` : ''}R$ ${produto.preco.toFixed(2).replace('.', ',')}
+                </p>
+                ${produto.disponivel && temVariantes
+                    ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
+                    : ''
+                }
+                ${produto.disponivel
+                    ? `<button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>`
+                    : `<button class="adicionar-carrinho indisponivel-btn" disabled>Indisponível</button>`
+                }
+            `;
+            gridEl.appendChild(produtoItemDiv);
+        });
+
+        listaProdutosDiv.appendChild(gridEl);
     });
 
     // Clique num "sabor" seleciona ele e desmarca os outros do mesmo produto
@@ -560,6 +583,8 @@ function renderizarProdutos() {
             atualizarCarrinhoHTML();
         });
     });
+
+    iniciarObservadorCategorias();
 }
 
 // NOVO: Função para renderizar as categorias
@@ -578,15 +603,39 @@ function renderizarCategorias() {
             button.classList.add('active'); // Adiciona classe 'active' para a categoria selecionada
         }
         button.addEventListener('click', () => {
-            categoriaAtual = categoria;
-            // Remove a classe 'active' de todos os botões e adiciona ao clicado
             document.querySelectorAll('.categoria-btn').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            renderizarProdutos(); // Renderiza os produtos da nova categoria
+            if (categoria === 'Todos') {
+                listaProdutosDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                const alvo = document.getElementById(categoriaParaId(categoria));
+                if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
         li.appendChild(button);
         categoriasNav.appendChild(li);
     });
+}
+
+// Acompanha o scroll e destaca sozinho a categoria que está aparecendo na tela
+let categoriaObserver = null;
+
+function iniciarObservadorCategorias() {
+    if (categoriaObserver) categoriaObserver.disconnect();
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    categoriaObserver = new IntersectionObserver((entradas) => {
+        entradas.forEach(entrada => {
+            if (entrada.isIntersecting) {
+                const nomeCategoria = entrada.target.textContent;
+                document.querySelectorAll('.categoria-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === nomeCategoria);
+                });
+            }
+        });
+    }, { rootMargin: '-90px 0px -70% 0px', threshold: 0 });
+
+    document.querySelectorAll('.categoria-titulo').forEach(titulo => categoriaObserver.observe(titulo));
 }
 
 
