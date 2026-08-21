@@ -102,6 +102,46 @@
                     <button onclick="adicionarCupom()">+ Adicionar cupom</button>
                 </div>
             </section>
+
+            <section>
+                <h2>⭐ Clube Brit's (Fidelidade)</h2>
+                <div class="loja-status-card">
+                    <label class="dia-checkbox" style="font-size:0.95em; margin-bottom:10px;">
+                        <input type="checkbox" id="fidelidadeAtiva" onchange="salvarConfigFidelidade()"> Clube de fidelidade ativado
+                    </label>
+
+                    <label class="campo-label">A cada quantos reais gastos, o cliente ganha 1 ponto?</label>
+                    <input type="text" inputmode="decimal" id="fidelidadeValorPorPonto" placeholder="Ex: 10 (a cada R$10,00 = 1 ponto)">
+
+                    <label class="dia-checkbox" style="font-size:0.9em; margin:10px 0;">
+                        <input type="checkbox" id="fidelidadePontosDobro" onchange="salvarConfigFidelidade()"> 🔥 Hoje é dia de pontos em dobro
+                    </label>
+
+                    <h3>Níveis do clube</h3>
+                    <p class="dica-secao">A partir de quantos pontos cada nível começa (Bronze sempre começa em 0).</p>
+                    <div class="produto-admin-linha">
+                        <div class="campo-com-label"><label class="campo-label">🥈 Prata a partir de</label><input type="text" inputmode="numeric" id="fidelidadeMinPrata" placeholder="50"></div>
+                        <div class="campo-com-label"><label class="campo-label">🥇 Ouro a partir de</label><input type="text" inputmode="numeric" id="fidelidadeMinOuro" placeholder="100"></div>
+                        <div class="campo-com-label"><label class="campo-label">💎 VIP a partir de</label><input type="text" inputmode="numeric" id="fidelidadeMinVip" placeholder="200"></div>
+                    </div>
+                    <button class="btn-salvar-ordem" style="margin-top:10px;" onclick="salvarConfigFidelidade()">Salvar configuração do clube</button>
+                    <p id="fidelidadeMsg" class="ordem-categorias-msg"></p>
+                </div>
+
+                <h3 style="margin-top:22px;">Catálogo de recompensas</h3>
+                <div id="recompensasAdminList" class="produtos-admin-list"></div>
+                <div class="cupom-novo-form" style="flex-wrap:wrap;">
+                    <input type="text" inputmode="numeric" id="novaRecompensaPontos" placeholder="Pontos necessários" style="min-width:110px;">
+                    <input type="text" id="novaRecompensaDescricao" placeholder="Descrição (ex: 1 Refrigerante grátis)" style="flex:2; min-width:200px;">
+                    <select id="novaRecompensaTipo" onchange="atualizarCampoRecompensa()">
+                        <option value="desconto">Desconto em R$</option>
+                        <option value="produto">Produto grátis</option>
+                    </select>
+                    <input type="text" inputmode="decimal" id="novaRecompensaValor" placeholder="Valor do desconto (R$)">
+                    <select id="novaRecompensaProduto" style="display:none;"></select>
+                    <button onclick="adicionarRecompensa()">+ Adicionar recompensa</button>
+                </div>
+            </section>
         </main>
     </div>
 

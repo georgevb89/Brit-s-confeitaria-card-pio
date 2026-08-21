@@ -348,6 +348,7 @@ function atualizarPreviaVariantes(id) {
 
 // Guarda as categorias reais que existem nos produtos, pra conferir o que o dono digitar na ordem
 let categoriasConhecidas = [];
+let produtosConhecidos = [];
 
 function escutarProdutos() {
     db.ref('produtos').on('value', snap => {
@@ -359,7 +360,9 @@ function escutarProdutos() {
         itens.sort((a, b) => (a.produto.criadoEm || 0) - (b.produto.criadoEm || 0));
 
         categoriasConhecidas = [...new Set(itens.map(i => i.produto.categoria).filter(Boolean))];
+        produtosConhecidos = itens.map(i => i.produto.nome).filter(Boolean);
         atualizarPreviaOrdemCategorias();
+        atualizarSelectProdutoRecompensa();
 
         btnImportar.style.display = itens.length === 0 ? 'block' : 'none';
 
@@ -538,6 +541,135 @@ function salvarOrdemCategorias() {
         .catch(err => alert('Erro ao salvar ordem: ' + err.message));
 }
 
+// ---------- CLUBE DE FIDELIDADE ----------
+
+function escutarConfigFidelidade() {
+    db.ref('configuracao/fidelidade').on('value', snap => {
+        const cfg = snap.val() || {};
+        const ativoEl = document.getElementById('fidelidadeAtiva');
+        const dobroEl = document.getElementById('fidelidadePontosDobro');
+        if (document.activeElement !== document.getElementById('fidelidadeValorPorPonto')) {
+            document.getElementById('fidelidadeValorPorPonto').value = cfg.valorPorPonto != null ? cfg.valorPorPonto : '';
+        }
+        if (document.activeElement !== document.getElementById('fidelidadeMinPrata')) {
+            document.getElementById('fidelidadeMinPrata').value = cfg.minPrata != null ? cfg.minPrata : '';
+        }
+        if (document.activeElement !== document.getElementById('fidelidadeMinOuro')) {
+            document.getElementById('fidelidadeMinOuro').value = cfg.minOuro != null ? cfg.minOuro : '';
+        }
+        if (document.activeElement !== document.getElementById('fidelidadeMinVip')) {
+            document.getElementById('fidelidadeMinVip').value = cfg.minVip != null ? cfg.minVip : '';
+        }
+        ativoEl.checked = !!cfg.ativo;
+        dobroEl.checked = !!cfg.pontosDobro;
+    });
+}
+
+function salvarConfigFidelidade() {
+    const dados = {
+        ativo: document.getElementById('fidelidadeAtiva').checked,
+        pontosDobro: document.getElementById('fidelidadePontosDobro').checked,
+        valorPorPonto: paraNumero(document.getElementById('fidelidadeValorPorPonto').value) || 10,
+        minPrata: parseInt(document.getElementById('fidelidadeMinPrata').value, 10) || 50,
+        minOuro: parseInt(document.getElementById('fidelidadeMinOuro').value, 10) || 100,
+        minVip: parseInt(document.getElementById('fidelidadeMinVip').value, 10) || 200
+    };
+    db.ref('configuracao/fidelidade').set(dados)
+        .then(() => {
+            const msg = document.getElementById('fidelidadeMsg');
+            msg.textContent = '✅ Configuração salva!';
+            setTimeout(() => { msg.textContent = ''; }, 3000);
+        })
+        .catch(err => alert('Erro ao salvar configuração do clube: ' + err.message));
+}
+
+function atualizarSelectProdutoRecompensa() {
+    const sel = document.getElementById('novaRecompensaProduto');
+    if (!sel) return;
+    const atual = sel.value;
+    sel.innerHTML = '';
+    produtosConhecidos.forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome; opt.textContent = nome;
+        sel.appendChild(opt);
+    });
+    if (produtosConhecidos.includes(atual)) sel.value = atual;
+}
+
+function atualizarCampoRecompensa() {
+    const tipo = document.getElementById('novaRecompensaTipo').value;
+    document.getElementById('novaRecompensaValor').style.display = tipo === 'produto' ? 'none' : 'block';
+    document.getElementById('novaRecompensaProduto').style.display = tipo === 'produto' ? 'block' : 'none';
+}
+
+function montarLinhaRecompensa(index, r) {
+    const div = document.createElement('div');
+    div.classList.add('cupom-admin-item');
+    const detalhe = r.tipo === 'produto' ? `🎁 ${r.produtoNome}` : `💰 R$ ${Number(r.valor || 0).toFixed(2).replace('.', ',')} de desconto`;
+    div.innerHTML = `
+        <div class="cupom-admin-info">
+            <strong>${r.pontos} pontos</strong>
+            <span>${r.descricao} — ${detalhe}</span>
+        </div>
+        <button class="btn-excluir-cupom" onclick="removerRecompensa(${index})">🗑️</button>
+    `;
+    return div;
+}
+
+function escutarRecompensas() {
+    db.ref('configuracao/recompensasFidelidade').on('value', snap => {
+        const lista = snap.val() || [];
+        const div = document.getElementById('recompensasAdminList');
+        div.innerHTML = '';
+        if (lista.length === 0) {
+            div.innerHTML = '<p class="vazio">Nenhuma recompensa cadastrada ainda.</p>';
+            return;
+        }
+        lista.forEach((r, i) => { if (r) div.appendChild(montarLinhaRecompensa(i, r)); });
+    });
+}
+
+function adicionarRecompensa() {
+    const pontos = parseInt(document.getElementById('novaRecompensaPontos').value, 10);
+    const descricao = document.getElementById('novaRecompensaDescricao').value.trim();
+    const tipo = document.getElementById('novaRecompensaTipo').value;
+
+    if (!pontos || pontos <= 0 || !descricao) {
+        alert('Preencha os pontos necessários e a descrição da recompensa.');
+        return;
+    }
+
+    const recompensa = { pontos, descricao, tipo };
+    if (tipo === 'produto') {
+        const produtoNome = document.getElementById('novaRecompensaProduto').value;
+        if (!produtoNome) { alert('Selecione o produto que será dado de graça.'); return; }
+        recompensa.produtoNome = produtoNome;
+    } else {
+        const valor = paraNumero(document.getElementById('novaRecompensaValor').value);
+        if (!valor || valor <= 0) { alert('Informe o valor do desconto.'); return; }
+        recompensa.valor = valor;
+    }
+
+    db.ref('configuracao/recompensasFidelidade').once('value').then(snap => {
+        const lista = snap.val() || [];
+        lista.push(recompensa);
+        return db.ref('configuracao/recompensasFidelidade').set(lista);
+    }).then(() => {
+        document.getElementById('novaRecompensaPontos').value = '';
+        document.getElementById('novaRecompensaDescricao').value = '';
+        document.getElementById('novaRecompensaValor').value = '';
+    }).catch(err => alert('Erro ao adicionar recompensa: ' + err.message));
+}
+
+function removerRecompensa(index) {
+    if (!confirm('Remover essa recompensa do catálogo?')) return;
+    db.ref('configuracao/recompensasFidelidade').once('value').then(snap => {
+        const lista = snap.val() || [];
+        lista.splice(index, 1);
+        return db.ref('configuracao/recompensasFidelidade').set(lista);
+    }).catch(err => alert('Erro ao remover recompensa: ' + err.message));
+}
+
 function iniciarEscutaPedidos() {
     document.getElementById('statusConexao').textContent = 'Conectado — atualizando em tempo real';
 
@@ -545,6 +677,8 @@ function iniciarEscutaPedidos() {
     escutarProdutos();
     escutarCupons();
     escutarOrdemCategorias();
+    escutarConfigFidelidade();
+    escutarRecompensas();
 
     const refPendentes = db.ref('pedidos').orderByChild('status').equalTo('pendente');
     const listaPendentesEl = document.getElementById('listaPendentes');

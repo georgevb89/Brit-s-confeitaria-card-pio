@@ -873,3 +873,101 @@ footer {
     font-size: 0.9em;
     color: var(--text);
 }
+
+/* Clube Brit's (fidelidade) */
+.clube-brits-card {
+    background: linear-gradient(135deg, #fff8ec, #fdf1de);
+    border: 2px solid var(--accent);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 10px;
+    text-align: center;
+}
+.clube-brits-card h3 {
+    margin: 0 0 4px;
+    color: var(--primary);
+    font-size: 1.15em;
+}
+.clube-brits-card > div > p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 0.9em;
+}
+.clube-brits-card button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+}
+.clube-brits-card button:hover { background: var(--primary-dark); }
+
+#clubeFormIdentificacao input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95em;
+    background: #fff;
+}
+
+.clube-saudacao { font-weight: 700; color: var(--primary); font-size: 1.05em; margin-bottom: 2px !important; }
+.clube-nivel { font-size: 0.95em; font-weight: 600; }
+.clube-pontos { font-size: 1.3em; color: var(--primary); font-weight: 700; margin: 4px 0 !important; }
+
+.clube-barra-fundo {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    height: 14px;
+    overflow: hidden;
+    margin: 8px 0 4px;
+}
+.clube-barra-preenchida {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    border-radius: 20px;
+    transition: width 0.4s ease;
+}
+
+.clube-recompensas-titulo {
+    color: var(--primary);
+    font-size: 0.95em;
+    margin: 16px 0 8px;
+    text-align: left;
+}
+.clube-recompensa-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    font-size: 0.85em;
+    text-align: left;
+}
+.clube-recompensa-item.bloqueada { opacity: 0.5; }
+.clube-recompensa-item button {
+    padding: 6px 12px;
+    font-size: 0.85em;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.link-sair-clube {
+    background: none !important;
+    color: var(--muted) !important;
+    text-decoration: underline;
+    font-size: 0.78em !important;
+    font-weight: 400 !important;
+    padding: 6px !important;
+    margin-top: 8px;
+}

@@ -181,10 +181,15 @@ let cupons = {};
 let cupomAplicado = null; // { codigo, tipo, valor }
 
 function calcularDesconto(subtotal) {
-    if (!cupomAplicado) return 0;
-    if (cupomAplicado.tipo === 'percentual') return subtotal * (cupomAplicado.valor / 100);
-    if (cupomAplicado.tipo === 'fixo') return Math.min(cupomAplicado.valor, subtotal);
-    return 0; // frete_gratis não desconta o subtotal
+    let desconto = 0;
+    if (cupomAplicado) {
+        if (cupomAplicado.tipo === 'percentual') desconto += subtotal * (cupomAplicado.valor / 100);
+        else if (cupomAplicado.tipo === 'fixo') desconto += cupomAplicado.valor;
+    }
+    if (recompensaSelecionada && recompensaSelecionada.tipo === 'desconto') {
+        desconto += recompensaSelecionada.valor;
+    }
+    return Math.min(desconto, subtotal);
 }
 
 function aplicarCupom() {
@@ -871,6 +876,231 @@ function limparFormularioEndereco() {
 
 
 // Funcionalidade para o botão Finalizar Compra
+/* ===================================================================
+   CLUBE BRIT'S (Fidelidade)
+   =================================================================== */
+let clubeIdentificado = null; // { nome, telefone }
+let configFidelidade = {};
+let recompensasFidelidade = [];
+let dadosFidelidadeCliente = { pontos: 0, totalGasto: 0 };
+let refFidelidadeCliente = null;
+let recompensaSelecionada = null; // { pontos, tipo, valor|produtoNome, descricao, _index }
+
+function normalizarTelefone(tel) {
+    return (tel || '').replace(/\D/g, '');
+}
+
+function escutarConfigClube() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    firebase.database().ref('configuracao/fidelidade').on('value', snap => {
+        configFidelidade = snap.val() || {};
+        const card = document.getElementById('clubeBritsCard');
+        if (card) card.style.display = configFidelidade.ativo ? 'block' : 'none';
+        atualizarUIClube();
+    });
+    firebase.database().ref('configuracao/recompensasFidelidade').on('value', snap => {
+        recompensasFidelidade = snap.val() || [];
+        atualizarUIClube();
+    });
+}
+
+function abrirFormClube() {
+    document.getElementById('clubeNaoIdentificado').style.display = 'none';
+    document.getElementById('clubeFormIdentificacao').style.display = 'block';
+    // Já aproveita nome/telefone se o cliente já preencheu no formulário de entrega
+    if (nomeClienteInput.value) document.getElementById('clubeNomeInput').value = nomeClienteInput.value;
+    if (telefoneClienteInput.value) document.getElementById('clubeTelefoneInput').value = telefoneClienteInput.value;
+}
+
+function entrarNoClube() {
+    const nome = document.getElementById('clubeNomeInput').value.trim();
+    const telefone = normalizarTelefone(document.getElementById('clubeTelefoneInput').value);
+    if (!nome || telefone.length < 10) {
+        alert('Preencha seu nome e um WhatsApp válido (com DDD).');
+        return;
+    }
+    clubeIdentificado = { nome, telefone };
+    localStorage.setItem('clubeBritS', JSON.stringify(clubeIdentificado));
+
+    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        const ref = firebase.database().ref('fidelidade/' + telefone);
+        ref.once('value').then(snap => {
+            if (!snap.exists()) {
+                ref.set({ nome, pontos: 0, totalGasto: 0, criadoEm: firebase.database.ServerValue.TIMESTAMP });
+            } else {
+                ref.update({ nome });
+            }
+        });
+    }
+    escutarDadosFidelidadeCliente();
+    atualizarUIClube();
+}
+
+function sairDoClube() {
+    clubeIdentificado = null;
+    localStorage.removeItem('clubeBritS');
+    if (refFidelidadeCliente) { refFidelidadeCliente.off(); refFidelidadeCliente = null; }
+    dadosFidelidadeCliente = { pontos: 0, totalGasto: 0 };
+    atualizarUIClube();
+}
+
+function escutarDadosFidelidadeCliente() {
+    if (!clubeIdentificado || typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    if (refFidelidadeCliente) refFidelidadeCliente.off();
+    refFidelidadeCliente = firebase.database().ref('fidelidade/' + clubeIdentificado.telefone);
+    refFidelidadeCliente.on('value', snap => {
+        dadosFidelidadeCliente = snap.val() || { pontos: 0, totalGasto: 0 };
+        atualizarUIClube();
+    });
+}
+
+function calcularNivelClube(pontos, cfg) {
+    if (pontos >= (cfg.minVip || 200)) return { nome: 'VIP', emoji: '💎' };
+    if (pontos >= (cfg.minOuro || 100)) return { nome: 'Ouro', emoji: '🥇' };
+    if (pontos >= (cfg.minPrata || 50)) return { nome: 'Prata', emoji: '🥈' };
+    return { nome: 'Bronze', emoji: '🥉' };
+}
+
+function atualizarUIClube() {
+    const naoIdent = document.getElementById('clubeNaoIdentificado');
+    const form = document.getElementById('clubeFormIdentificacao');
+    const perfil = document.getElementById('clubePerfil');
+    if (!naoIdent) return;
+
+    if (!clubeIdentificado) {
+        naoIdent.style.display = 'block';
+        form.style.display = 'none';
+        perfil.style.display = 'none';
+        return;
+    }
+    naoIdent.style.display = 'none';
+    form.style.display = 'none';
+    perfil.style.display = 'block';
+
+    document.getElementById('clubeNomeExibido').textContent = clubeIdentificado.nome;
+
+    const pontos = dadosFidelidadeCliente.pontos || 0;
+    const nivel = calcularNivelClube(pontos, configFidelidade);
+    document.getElementById('clubeNivelEmoji').textContent = nivel.emoji;
+    document.getElementById('clubeNivelNome').textContent = nivel.nome;
+    document.getElementById('clubePontosExibido').textContent = pontos;
+
+    // Barra de progresso até a PRÓXIMA recompensa que o cliente ainda não alcançou
+    const comIndice = recompensasFidelidade.map((r, i) => r ? { ...r, _index: i } : null).filter(Boolean);
+    const ordenadas = [...comIndice].sort((a, b) => a.pontos - b.pontos);
+    const proxima = ordenadas.find(r => r.pontos > pontos);
+    const barra = document.getElementById('clubeBarraProgresso');
+    const progressoTexto = document.getElementById('clubeProgressoTexto');
+
+    if (proxima) {
+        const anterior = [...ordenadas].reverse().find(r => r.pontos <= pontos);
+        const base = anterior ? anterior.pontos : 0;
+        const pct = Math.min(100, Math.round(((pontos - base) / (proxima.pontos - base)) * 100));
+        barra.style.width = pct + '%';
+        progressoTexto.textContent = `🎁 Faltam ${proxima.pontos - pontos} pontos para: ${proxima.descricao}`;
+    } else if (ordenadas.length > 0) {
+        barra.style.width = '100%';
+        progressoTexto.textContent = '🎉 Você já pode resgatar todas as recompensas disponíveis!';
+    } else {
+        barra.style.width = '0%';
+        progressoTexto.textContent = 'Continue comprando pra acumular pontos!';
+    }
+
+    renderRecompensasClube(comIndice, pontos);
+    atualizarBotaoRepetirPedido();
+}
+
+function renderRecompensasClube(comIndice, pontos) {
+    const div = document.getElementById('clubeRecompensas');
+    if (!div) return;
+    if (!comIndice || comIndice.length === 0) { div.innerHTML = ''; return; }
+    const ordenadas = [...comIndice].sort((a, b) => a.pontos - b.pontos);
+    div.innerHTML = '<h4 class="clube-recompensas-titulo">🎁 Recompensas disponíveis</h4>' + ordenadas.map(r => {
+        const podeResgatar = pontos >= r.pontos;
+        const detalhe = r.tipo === 'produto' ? r.produtoNome : `R$ ${Number(r.valor || 0).toFixed(2).replace('.', ',')} de desconto`;
+        return `<div class="clube-recompensa-item ${podeResgatar ? '' : 'bloqueada'}">
+            <span>${r.pontos} pts — ${r.descricao} (${detalhe})</span>
+            ${podeResgatar ? `<button type="button" onclick="resgatarRecompensa(${r._index})">Resgatar</button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function resgatarRecompensa(index) {
+    const r = recompensasFidelidade[index];
+    if (!r) return;
+    const pontos = dadosFidelidadeCliente.pontos || 0;
+    if (pontos < r.pontos) { alert('Você ainda não tem pontos suficientes pra essa recompensa.'); return; }
+
+    recompensaSelecionada = { ...r, _index: index };
+
+    if (r.tipo === 'produto') {
+        const produtoRef = produtos.find(p => p.nome === r.produtoNome);
+        carrinho.push({
+            nome: r.produtoNome,
+            preco: 0,
+            quantidade: 1,
+            observacao: "🎁 Recompensa do Clube Brit's"
+        });
+        salvarCarrinho();
+    }
+    atualizarCarrinhoHTML();
+    alert(`Recompensa selecionada: ${r.descricao}! Ela será aplicada quando você finalizar o pedido.`);
+}
+
+function atualizarBotaoRepetirPedido() {
+    const btn = document.getElementById('btnRepetirPedido');
+    if (!btn) return;
+    const ultimo = dadosFidelidadeCliente.ultimoPedido;
+    btn.style.display = (ultimo && ultimo.itens && ultimo.itens.length > 0) ? 'block' : 'none';
+}
+
+function repetirUltimoPedido() {
+    const ultimo = dadosFidelidadeCliente.ultimoPedido;
+    if (!ultimo || !ultimo.itens || ultimo.itens.length === 0) return;
+    ultimo.itens.forEach(item => {
+        const jaExiste = carrinho.find(c => c.nome === item.nome && (c.observacao || '') === (item.observacao || ''));
+        if (jaExiste) jaExiste.quantidade += item.quantidade;
+        else carrinho.push({ nome: item.nome, preco: item.preco, quantidade: item.quantidade, observacao: item.observacao || null });
+    });
+    salvarCarrinho();
+    atualizarCarrinhoHTML();
+    alert('Itens do seu último pedido foram adicionados ao carrinho!');
+}
+
+// Credita pontos automaticamente ao telefone do pedido (mesmo que o cliente não tenha "entrado" no Clube),
+// e desconta os pontos de uma recompensa resgatada, se houver
+function registrarPontosFidelidade(telefone, nome, valorPago, itensDoPedido, tipoEntregaPedido) {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    const tel = normalizarTelefone(telefone);
+    if (!tel) return;
+    const cfg = configFidelidade || {};
+    const ref = firebase.database().ref('fidelidade/' + tel);
+
+    ref.once('value').then(snap => {
+        const atual = snap.val() || { pontos: 0, totalGasto: 0 };
+        let pontosGanhos = 0;
+        if (cfg.ativo) {
+            const valorPorPonto = cfg.valorPorPonto || 10;
+            pontosGanhos = Math.floor(valorPago / valorPorPonto);
+            if (cfg.pontosDobro) pontosGanhos *= 2;
+        }
+        let novosPontos = (atual.pontos || 0) + pontosGanhos;
+        if (recompensaSelecionada) {
+            novosPontos = Math.max(0, novosPontos - recompensaSelecionada.pontos);
+        }
+        ref.set({
+            nome,
+            pontos: novosPontos,
+            totalGasto: Math.round(((atual.totalGasto || 0) + valorPago) * 100) / 100,
+            ultimoPedido: { itens: itensDoPedido, tipoEntrega: tipoEntregaPedido, data: Date.now() },
+            atualizadoEm: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => console.log('Erro ao atualizar fidelidade:', err));
+    }).catch(err => console.log('Erro ao ler fidelidade:', err));
+
+    recompensaSelecionada = null;
+}
+
+
 botaoFinalizarCompra.addEventListener('click', () => {
     if (!lojaAbertaAtual) {
         alert('Estamos fechados no momento. Assim que reabrirmos, você já pode finalizar seu pedido!');
@@ -940,6 +1170,7 @@ botaoFinalizarCompra.addEventListener('click', () => {
     mensagemPedido += `\n*Itens:*\n${itensPedido}\n`;
     mensagemPedido += `*Subtotal:* ${subtotalTexto}\n`;
     if (cupomAplicado) mensagemPedido += `*Cupom:* ${cupomAplicado.codigo}${desconto > 0 ? ` (- R$ ${desconto.toFixed(2).replace('.', ',')})` : ''}\n`;
+    if (recompensaSelecionada) mensagemPedido += `*Recompensa do Clube:* ${recompensaSelecionada.descricao} (${recompensaSelecionada.pontos} pontos)\n`;
     if (tipoEntregaAtual === 'entrega') mensagemPedido += `*Taxa de entrega:* ${freteTexto}\n`;
     mensagemPedido += `*Total:* ${totalPedido}\n`;
     if (obs) mensagemPedido += `\n*Observações:* ${obs}\n`;
@@ -966,6 +1197,14 @@ botaoFinalizarCompra.addEventListener('click', () => {
         localStorage.setItem('ultimoPedidoBritS', JSON.stringify({ id: pedidoId, criadoEm: Date.now() }));
         mostrarStatusPedido(pedidoId);
     }
+
+    // Credita os pontos de fidelidade pro telefone usado nesse pedido (mesmo que o cliente não tenha "entrado" no Clube)
+    registrarPontosFidelidade(
+        telefone, nome,
+        Math.max(0, subtotalPedido - desconto),
+        carrinho.map(item => ({ nome: item.nome, preco: item.preco, quantidade: item.quantidade, observacao: item.observacao || null })),
+        tipoEntregaAtual
+    );
 
     // Guarda os dados do cliente pra já vir preenchido na próxima compra
     localStorage.setItem('dadosClienteBritS', JSON.stringify({
@@ -1007,6 +1246,16 @@ function sincronizarPrecosCarrinho() {
 // Chama as funções iniciais ao carregar a página
 escutarProdutos(); // Carrega o cardápio do Firebase (e re-renderiza sozinho quando o painel mudar algo)
 escutarOrdemCategorias(); // Carrega a ordem de categorias definida no painel
+
+// Clube Brit's: recupera o cliente já identificado nesse navegador (se houver) e escuta a configuração
+try {
+    const salvo = JSON.parse(localStorage.getItem('clubeBritS'));
+    if (salvo && salvo.telefone) {
+        clubeIdentificado = salvo;
+        escutarDadosFidelidadeCliente();
+    }
+} catch (e) { /* localStorage vazio ou inválido, ignora */ }
+escutarConfigClube();
 escutarCupons(); // Carrega os cupons de desconto cadastrados no painel
 atualizarCarrinhoHTML();
 carregarDadosClienteSalvos(); // Preenche nome/telefone/endereço da última compra
@@ -1048,7 +1297,7 @@ mostrarBoasVindas();
    Depois de gerar a chave VAPID no Firebase (Configurações do projeto >
    Cloud Messaging > Certificados push da Web), cole ela aqui embaixo.
    =================================================================== */
-const VAPID_KEY = 'BLzgcYQb9-2BFMX9J9W8wKW0VaTssEA28cqKzh1diBk2_BCXcC0ekeqcWFyFkdtn2UowufLCOK6G82-vP_oMAdE';
+const VAPID_KEY = 'COLE_AQUI_A_SUA_CHAVE_VAPID';
 
 function podeReceberNotificacoes() {
     return typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length &&
