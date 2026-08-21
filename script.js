@@ -220,10 +220,24 @@ function atualizarStatusLoja(config) {
             botaoFinalizarCompra.textContent = 'Loja fechada no momento';
         }
     }
+
+    ajustarPosicaoCategorias();
 }
+
+// Empurra a barra de categorias pra baixo da faixa "Aberto/Fechado", já que as duas ficam grudadas no topo.
+// Mede a altura de verdade (o texto pode quebrar em 2 linhas em telas menores) em vez de usar um valor fixo.
+function ajustarPosicaoCategorias() {
+    const banner = document.getElementById('statusLojaBanner');
+    const nav = document.querySelector('.categorias');
+    if (!banner || !nav) return;
+    nav.style.top = banner.offsetHeight + 'px';
+}
+
+window.addEventListener('resize', ajustarPosicaoCategorias);
 
 // Escuta o status da loja em tempo real e reavalia a cada minuto (pra fechar/abrir sozinho no horário)
 function escutarStatusLoja() {
+    ajustarPosicaoCategorias(); // já deixa encaixado certo com o texto "Verificando..." inicial
     if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
         atualizarStatusLoja(null);
         return;
