@@ -292,13 +292,14 @@ function montarLinhaProduto(id, produto) {
         </div>
         <textarea id="prodDesc_${id}" placeholder="Descrição" rows="2">${produto.descricao || ''}</textarea>
         <div class="produto-admin-linha">
-            <input type="number" step="0.01" min="0" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Preço (R$)">
-            <input type="number" step="0.01" min="0" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Preço 'de' (oferta, opcional)">
+            <input type="text" inputmode="decimal" id="prodPreco_${id}" value="${produto.preco != null ? produto.preco : ''}" placeholder="Preço (R$) — ex: 45,00">
+            <input type="text" inputmode="decimal" id="prodPrecoOriginal_${id}" value="${produto.precoOriginal != null ? produto.precoOriginal : ''}" placeholder="Preço 'de' (oferta, opcional)">
         </div>
         <div class="produto-admin-linha">
             <input type="text" id="prodImagem_${id}" value="${produto.imagem || ''}" placeholder="nome-da-imagem.jpg">
             <input type="text" id="prodCategoria_${id}" value="${produto.categoria || ''}" placeholder="Categoria">
         </div>
+        <input type="text" id="prodVariantes_${id}" value="${(produto.variantes || []).join(', ')}" placeholder="Sabores/opções disponíveis, separados por vírgula (ex: Chocolate, Morango, Baunilha)">
         <div class="produto-admin-acoes">
             <button class="btn-salvar-produto" onclick="salvarProduto('${id}')">💾 Salvar</button>
             <button class="btn-excluir-produto" onclick="excluirProduto('${id}')">🗑️ Excluir</button>
@@ -308,40 +309,53 @@ function montarLinhaProduto(id, produto) {
 }
 
 function escutarProdutos() {
-    db.ref('produtos').on('value', snap => {
-        const val = snap.val() || {};
-        const ids = Object.keys(val);
+    db.ref('produtos').orderByChild('criadoEm').on('value', snap => {
         const lista = document.getElementById('produtosAdminList');
         const btnImportar = document.getElementById('btnImportarDados');
 
-        btnImportar.style.display = ids.length === 0 ? 'block' : 'none';
+        const itens = [];
+        snap.forEach(child => itens.push({ id: child.key, produto: child.val() }));
+
+        btnImportar.style.display = itens.length === 0 ? 'block' : 'none';
 
         lista.innerHTML = '';
-        if (ids.length === 0) {
+        if (itens.length === 0) {
             lista.innerHTML = '<p class="vazio">Nenhum produto cadastrado ainda.</p>';
             return;
         }
-        ids.forEach(id => lista.appendChild(montarLinhaProduto(id, val[id])));
+        itens.forEach(({ id, produto }) => lista.appendChild(montarLinhaProduto(id, produto)));
     });
+}
+
+// Aceita tanto vírgula quanto ponto como separador decimal (ex: "45,00" ou "45.00")
+function paraNumero(texto) {
+    if (!texto) return NaN;
+    return parseFloat(String(texto).trim().replace(',', '.'));
 }
 
 function salvarProduto(id) {
     const nome = document.getElementById('prodNome_' + id).value.trim();
     const descricao = document.getElementById('prodDesc_' + id).value.trim();
-    const preco = parseFloat(document.getElementById('prodPreco_' + id).value);
-    const precoOriginalRaw = document.getElementById('prodPrecoOriginal_' + id).value;
+    const preco = paraNumero(document.getElementById('prodPreco_' + id).value);
+    const precoOriginal = paraNumero(document.getElementById('prodPrecoOriginal_' + id).value);
     const imagem = document.getElementById('prodImagem_' + id).value.trim();
     const categoria = document.getElementById('prodCategoria_' + id).value.trim();
     const disponivel = document.getElementById('prodDisp_' + id).checked;
+    const variantesTexto = document.getElementById('prodVariantes_' + id).value.trim();
 
     if (!nome || isNaN(preco) || !imagem || !categoria) {
         alert('Preencha nome, preço, imagem e categoria antes de salvar.');
         return;
     }
 
-    const dados = { nome, descricao, preco, imagem, categoria, disponivel, precoOriginal: null };
-    if (precoOriginalRaw && parseFloat(precoOriginalRaw) > preco) {
-        dados.precoOriginal = parseFloat(precoOriginalRaw);
+    const dados = { nome, descricao, preco, imagem, categoria, disponivel, precoOriginal: null, variantes: null };
+
+    if (!isNaN(precoOriginal) && precoOriginal > preco) {
+        dados.precoOriginal = precoOriginal;
+    }
+
+    if (variantesTexto) {
+        dados.variantes = variantesTexto.split(',').map(v => v.trim()).filter(v => v.length > 0);
     }
 
     db.ref('produtos/' + id).update(dados).catch(err => alert('Erro ao salvar produto: ' + err.message));
@@ -360,7 +374,8 @@ function adicionarNovoProduto() {
         preco: 0,
         imagem: '',
         categoria: 'Outros',
-        disponivel: false
+        disponivel: false,
+        criadoEm: firebase.database.ServerValue.TIMESTAMP
     }).catch(err => alert('Erro ao criar produto: ' + err.message));
 }
 
@@ -405,15 +420,15 @@ function atualizarCampoValorCupom() {
 function adicionarCupom() {
     const codigo = document.getElementById('novoCupomCodigo').value.trim().toUpperCase();
     const tipo = document.getElementById('novoCupomTipo').value;
-    const valorInput = document.getElementById('novoCupomValor').value;
+    const valorInput = paraNumero(document.getElementById('novoCupomValor').value);
 
     if (!codigo) { alert('Digite um código pro cupom.'); return; }
-    if (tipo !== 'frete_gratis' && (!valorInput || Number(valorInput) <= 0)) {
+    if (tipo !== 'frete_gratis' && (isNaN(valorInput) || valorInput <= 0)) {
         alert('Digite um valor válido pro desconto.');
         return;
     }
 
-    const dadosCupom = tipo === 'frete_gratis' ? { tipo } : { tipo, valor: Number(valorInput) };
+    const dadosCupom = tipo === 'frete_gratis' ? { tipo } : { tipo, valor: valorInput };
 
     db.ref('cupons/' + codigo).set(dadosCupom)
         .then(() => {

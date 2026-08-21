@@ -611,3 +611,54 @@ footer {
     padding: 30px 10px;
     grid-column: 1 / -1;
 }
+
+/* Aviso de oferta ativa */
+.oferta-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 10px 16px;
+    font-size: 0.9em;
+    font-weight: 700;
+    text-align: center;
+    background: #fff0e0;
+    color: #a0522d;
+    border-bottom: 1px solid #f0c896;
+}
+.oferta-banner button {
+    background: none;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    font-weight: 700;
+}
+.oferta-banner button:hover { opacity: 1; }
+
+/* Sabores/opções clicáveis (variantes) */
+.variantes-lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 14px 12px;
+}
+.variante-pill {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.78em;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.variante-pill:hover { background: var(--accent); color: #3a2b12; }
+.variante-pill.selecionada {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}

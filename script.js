@@ -242,14 +242,32 @@ function escutarProdutos() {
         listaProdutosDiv.innerHTML = '<p class="cardapio-erro">Não foi possível carregar o cardápio agora. Recarregue a página em instantes.</p>';
         return;
     }
-    firebase.database().ref('produtos').on('value', snap => {
-        const val = snap.val() || {};
-        produtos = Object.values(val).filter(p => p && p.nome);
+    firebase.database().ref('produtos').orderByChild('criadoEm').on('value', snap => {
+        const lista = [];
+        snap.forEach(child => lista.push(child.val()));
+        produtos = lista.filter(p => p && p.nome);
         sincronizarPrecosCarrinho();
         renderizarCategorias();
         renderizarProdutos();
         atualizarCarrinhoHTML();
+        atualizarAvisoOferta();
     });
+}
+
+// Mostra um aviso chamativo quando algum produto disponível está em oferta
+function atualizarAvisoOferta() {
+    const banner = document.getElementById('ofertaBanner');
+    if (!banner) return;
+    const temOferta = produtos.some(p => p.disponivel && p.precoOriginal && p.precoOriginal > p.preco);
+    banner.style.display = (temOferta && !ofertaBannerFechadoPeloUsuario) ? 'flex' : 'none';
+}
+
+let ofertaBannerFechadoPeloUsuario = false;
+
+function fecharAvisoOferta() {
+    ofertaBannerFechadoPeloUsuario = true;
+    const banner = document.getElementById('ofertaBanner');
+    if (banner) banner.style.display = 'none';
 }
 
 // Carrega os cupons de desconto cadastrados no painel
@@ -468,6 +486,8 @@ function renderizarProdutos() {
         // Verifica se o produto está em oferta (tem precoOriginal maior que o preco atual)
         const emOferta = produto.precoOriginal && produto.precoOriginal > produto.preco;
 
+        const temVariantes = Array.isArray(produto.variantes) && produto.variantes.length > 0;
+
         produtoItemDiv.innerHTML = `
             ${emOferta ? `<div class="produto-tag">🔥 Oferta</div>` : ''}
             <img src="${produto.imagem}" alt="${produto.nome}">
@@ -476,7 +496,12 @@ function renderizarProdutos() {
             <p class="preco">
                 ${emOferta ? `<span class="preco-original">R$ ${produto.precoOriginal.toFixed(2).replace('.', ',')}</span> ` : ''}R$ ${produto.preco.toFixed(2).replace('.', ',')}
             </p>
-            ${produto.disponivel ? `<input type="text" class="observacao-item" placeholder="Personalizar (opcional): sabor, tamanho..." maxlength="80">` : ''}
+            ${produto.disponivel
+                ? (temVariantes
+                    ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
+                    : `<input type="text" class="observacao-item" placeholder="Personalizar (opcional): sabor, tamanho..." maxlength="80">`)
+                : ''
+            }
             ${produto.disponivel
                 ? `<button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>`
                 : `<button class="adicionar-carrinho indisponivel-btn" disabled>Indisponível</button>`
@@ -485,14 +510,24 @@ function renderizarProdutos() {
         listaProdutosDiv.appendChild(produtoItemDiv);
     });
 
+    // Clique num "sabor" seleciona ele e desmarca os outros do mesmo produto
+    document.querySelectorAll('.variante-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            pill.closest('.variantes-lista').querySelectorAll('.variante-pill').forEach(p => p.classList.remove('selecionada'));
+            pill.classList.add('selecionada');
+        });
+    });
+
     // Adiciona event listeners apenas para botões de produtos disponíveis
     document.querySelectorAll('.adicionar-carrinho:not(.indisponivel-btn)').forEach(botao => {
         botao.addEventListener('click', (evento) => {
             const nomeProduto = evento.target.dataset.nome;
             const precoProduto = parseFloat(evento.target.dataset.preco);
 
-            const inputObs = evento.target.closest('.produto-item').querySelector('.observacao-item');
-            const observacaoValor = inputObs ? inputObs.value.trim() : '';
+            const cardProduto = evento.target.closest('.produto-item');
+            const varianteSelecionada = cardProduto.querySelector('.variante-pill.selecionada');
+            const inputObs = cardProduto.querySelector('.observacao-item');
+            const observacaoValor = varianteSelecionada ? varianteSelecionada.dataset.variante : (inputObs ? inputObs.value.trim() : '');
 
             const produtoExistente = carrinho.find(item => item.nome === nomeProduto && (item.observacao || '') === observacaoValor);
 
@@ -510,6 +545,7 @@ function renderizarProdutos() {
             }
 
             if (inputObs) inputObs.value = '';
+            cardProduto.querySelectorAll('.variante-pill').forEach(p => p.classList.remove('selecionada'));
 
             alert(`${nomeProduto} adicionado ao carrinho!`);
             console.log('Carrinho atual:', carrinho);
