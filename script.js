@@ -526,8 +526,16 @@ function renderizarProdutos() {
             const precoProduto = parseFloat(evento.target.dataset.preco);
 
             const cardProduto = evento.target.closest('.produto-item');
+            const listaVariantes = cardProduto.querySelectorAll('.variante-pill');
             const varianteSelecionada = cardProduto.querySelector('.variante-pill.selecionada');
             const inputObs = cardProduto.querySelector('.observacao-item');
+
+            // Se o produto tem sabores/opções, é obrigatório escolher um antes de adicionar
+            if (listaVariantes.length > 0 && !varianteSelecionada) {
+                alert('Escolha um sabor/opção antes de adicionar ao carrinho.');
+                return;
+            }
+
             const observacaoValor = varianteSelecionada ? varianteSelecionada.dataset.variante : (inputObs ? inputObs.value.trim() : '');
 
             const produtoExistente = carrinho.find(item => item.nome === nomeProduto && (item.observacao || '') === observacaoValor);
