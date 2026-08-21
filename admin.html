@@ -82,7 +82,8 @@
             <section>
                 <h2>🗂️ Ordem das categorias no cardápio</h2>
                 <p class="dica-secao">Digite as categorias na ordem que quer que apareçam, separadas por vírgula. As que você não listar aqui aparecem depois, na ordem que forem cadastradas.</p>
-                <input type="text" id="ordemCategoriasInput" placeholder="Ex: Bolo, Sobremesa, Brigadeiro, Salgados, Bebidas">
+                <input type="text" id="ordemCategoriasInput" placeholder="Ex: Bolo, Sobremesa, Brigadeiro, Salgados, Bebidas" oninput="atualizarPreviaOrdemCategorias()">
+                <div id="previaOrdemCategorias" class="previa-variantes"></div>
                 <button class="btn-salvar-ordem" onclick="salvarOrdemCategorias()">Salvar ordem</button>
                 <p id="ordemCategoriasMsg" class="ordem-categorias-msg"></p>
             </section>

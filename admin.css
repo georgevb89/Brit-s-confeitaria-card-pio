@@ -601,3 +601,9 @@ body {
     min-height: 18px;
     margin: 8px 0 0;
 }
+
+.previa-pill-erro {
+    background: #fdecec;
+    color: #c0392b;
+    border-color: #f0b7b7;
+}

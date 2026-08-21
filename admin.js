@@ -333,6 +333,9 @@ function atualizarPreviaVariantes(id) {
     }
 }
 
+// Guarda as categorias reais que existem nos produtos, pra conferir o que o dono digitar na ordem
+let categoriasConhecidas = [];
+
 function escutarProdutos() {
     db.ref('produtos').on('value', snap => {
         const lista = document.getElementById('produtosAdminList');
@@ -341,6 +344,9 @@ function escutarProdutos() {
         const val = snap.val() || {};
         const itens = Object.entries(val).map(([id, produto]) => ({ id, produto }));
         itens.sort((a, b) => (a.produto.criadoEm || 0) - (b.produto.criadoEm || 0));
+
+        categoriasConhecidas = [...new Set(itens.map(i => i.produto.categoria).filter(Boolean))];
+        atualizarPreviaOrdemCategorias();
 
         btnImportar.style.display = itens.length === 0 ? 'block' : 'none';
 
@@ -478,7 +484,27 @@ function escutarOrdemCategorias() {
         if (document.activeElement === input) return;
         const ordem = snap.val() || [];
         input.value = ordem.join(', ');
+        atualizarPreviaOrdemCategorias();
     });
+}
+
+// Mostra quais categorias digitadas realmente existem nos produtos, e avisa quando alguma não bater
+function atualizarPreviaOrdemCategorias() {
+    const input = document.getElementById('ordemCategoriasInput');
+    const previa = document.getElementById('previaOrdemCategorias');
+    if (!input || !previa) return;
+
+    const texto = input.value.trim();
+    if (!texto) { previa.innerHTML = ''; return; }
+
+    const digitadas = texto.split(',').map(v => v.trim()).filter(v => v.length > 0);
+    const partes = digitadas.map(cat => {
+        const existe = categoriasConhecidas.includes(cat);
+        return existe
+            ? `<span class="previa-pill">${cat}</span>`
+            : `<span class="previa-pill previa-pill-erro">${cat} ⚠️ não encontrada</span>`;
+    });
+    previa.innerHTML = partes.join(' ');
 }
 
 function salvarOrdemCategorias() {
