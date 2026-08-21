@@ -560,3 +560,44 @@ body {
     color: #a56b00;
     font-weight: 600;
 }
+
+.dica-secao {
+    font-size: 0.85em;
+    color: var(--muted);
+    margin: 0 0 10px;
+}
+
+#ordemCategoriasInput {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9em;
+    background: var(--bg);
+    color: var(--text);
+    margin-bottom: 10px;
+}
+
+.btn-salvar-ordem {
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+.btn-salvar-ordem:hover { background: var(--primary-dark); }
+
+.ordem-categorias-msg {
+    text-align: center;
+    color: #1e6b34;
+    font-size: 0.85em;
+    font-weight: 600;
+    min-height: 18px;
+    margin: 8px 0 0;
+}

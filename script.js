@@ -112,6 +112,31 @@ let categoriaAtual = 'Todos';
 let tipoEntregaAtual = 'retirada';
 let formaPagamentoAtual = 'Pix';
 
+// Ordem de categorias definida pelo dono da loja no painel (opcional)
+let ordemCategoriasSalva = [];
+
+// Coloca as categorias na ordem salva pelo painel; as que não foram listadas lá vão depois, na ordem natural
+function ordenarCategorias(categorias) {
+    const comOrdem = [];
+    const semOrdem = [];
+    categorias.forEach(cat => {
+        const posicao = ordemCategoriasSalva.indexOf(cat);
+        if (posicao === -1) semOrdem.push(cat);
+        else comOrdem.push({ cat, posicao });
+    });
+    comOrdem.sort((a, b) => a.posicao - b.posicao);
+    return [...comOrdem.map(c => c.cat), ...semOrdem];
+}
+
+function escutarOrdemCategorias() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
+    firebase.database().ref('configuracao/ordemCategorias').on('value', snap => {
+        ordemCategoriasSalva = snap.val() || [];
+        renderizarCategorias();
+        renderizarProdutos();
+    });
+}
+
 /* ===================================================================
    Os cupons de desconto agora são gerenciados pelo painel (admin.html),
    dentro da seção "🎟️ Cupons de desconto". Aqui só carregamos o que
@@ -493,8 +518,8 @@ function categoriaParaId(categoria) {
 function renderizarProdutos() {
     listaProdutosDiv.innerHTML = '';
 
-    // Agrupa os produtos por categoria, na ordem em que as categorias aparecem
-    const categoriasNaOrdem = [...new Set(produtos.map(produto => produto.categoria))];
+    // Agrupa os produtos por categoria, respeitando a ordem definida no painel
+    const categoriasNaOrdem = ordenarCategorias([...new Set(produtos.map(produto => produto.categoria))]);
 
     categoriasNaOrdem.forEach(categoria => {
         const produtosDaCategoria = produtos.filter(produto => produto.categoria === categoria);
@@ -603,8 +628,8 @@ function renderizarProdutos() {
 
 // NOVO: Função para renderizar as categorias
 function renderizarCategorias() {
-    // Pega todas as categorias únicas dos produtos
-    const categorias = ['Todos', ...new Set(produtos.map(produto => produto.categoria))];
+    // Pega todas as categorias únicas dos produtos, na ordem definida no painel
+    const categorias = ['Todos', ...ordenarCategorias([...new Set(produtos.map(produto => produto.categoria))])];
 
     categoriasNav.innerHTML = ''; // Limpa a navegação de categorias
 
@@ -892,6 +917,7 @@ function sincronizarPrecosCarrinho() {
 
 // Chama as funções iniciais ao carregar a página
 escutarProdutos(); // Carrega o cardápio do Firebase (e re-renderiza sozinho quando o painel mudar algo)
+escutarOrdemCategorias(); // Carrega a ordem de categorias definida no painel
 escutarCupons(); // Carrega os cupons de desconto cadastrados no painel
 atualizarCarrinhoHTML();
 carregarDadosClienteSalvos(); // Preenche nome/telefone/endereço da última compra
@@ -906,3 +932,24 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+
+// Tela de boas-vindas: aparece só na primeira vez que o cliente abre o site nessa visita
+function mostrarBoasVindas() {
+    try {
+        if (sessionStorage.getItem('boasVindasBritS')) return;
+    } catch (e) {
+        return; // sessionStorage bloqueado (ex: navegação privada restrita) — não mostra pra não travar
+    }
+    const tela = document.getElementById('telaBoasVindas');
+    if (tela) tela.style.display = 'flex';
+}
+
+function fecharBoasVindas() {
+    const tela = document.getElementById('telaBoasVindas');
+    if (!tela) return;
+    tela.classList.add('fechando');
+    try { sessionStorage.setItem('boasVindasBritS', '1'); } catch (e) { /* ignora */ }
+    setTimeout(() => { tela.style.display = 'none'; }, 300);
+}
+
+mostrarBoasVindas();

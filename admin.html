@@ -80,6 +80,14 @@
             </section>
 
             <section>
+                <h2>🗂️ Ordem das categorias no cardápio</h2>
+                <p class="dica-secao">Digite as categorias na ordem que quer que apareçam, separadas por vírgula. As que você não listar aqui aparecem depois, na ordem que forem cadastradas.</p>
+                <input type="text" id="ordemCategoriasInput" placeholder="Ex: Bolo, Sobremesa, Brigadeiro, Salgados, Bebidas">
+                <button class="btn-salvar-ordem" onclick="salvarOrdemCategorias()">Salvar ordem</button>
+                <p id="ordemCategoriasMsg" class="ordem-categorias-msg"></p>
+            </section>
+
+            <section>
                 <h2>🎟️ Cupons de desconto</h2>
                 <div id="cuponsAdminList" class="cupons-admin-list"></div>
                 <div class="cupom-novo-form">

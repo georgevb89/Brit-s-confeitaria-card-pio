@@ -469,12 +469,37 @@ function excluirCupom(codigo) {
     db.ref('cupons/' + codigo).remove().catch(err => alert('Erro ao excluir cupom: ' + err.message));
 }
 
+// ---------- ORDEM DAS CATEGORIAS ----------
+
+function escutarOrdemCategorias() {
+    db.ref('configuracao/ordemCategorias').on('value', snap => {
+        const input = document.getElementById('ordemCategoriasInput');
+        // Não sobrescreve o que o dono está digitando no momento
+        if (document.activeElement === input) return;
+        const ordem = snap.val() || [];
+        input.value = ordem.join(', ');
+    });
+}
+
+function salvarOrdemCategorias() {
+    const texto = document.getElementById('ordemCategoriasInput').value.trim();
+    const ordem = texto ? texto.split(',').map(v => v.trim()).filter(v => v.length > 0) : [];
+    db.ref('configuracao/ordemCategorias').set(ordem)
+        .then(() => {
+            const msg = document.getElementById('ordemCategoriasMsg');
+            msg.textContent = '✅ Ordem salva!';
+            setTimeout(() => { msg.textContent = ''; }, 3000);
+        })
+        .catch(err => alert('Erro ao salvar ordem: ' + err.message));
+}
+
 function iniciarEscutaPedidos() {
     document.getElementById('statusConexao').textContent = 'Conectado — atualizando em tempo real';
 
     escutarConfigLoja();
     escutarProdutos();
     escutarCupons();
+    escutarOrdemCategorias();
 
     const refPendentes = db.ref('pedidos').orderByChild('status').equalTo('pendente');
     const listaPendentesEl = document.getElementById('listaPendentes');
