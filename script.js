@@ -1043,6 +1043,87 @@ function fecharBoasVindas() {
 
 mostrarBoasVindas();
 
+/* ===================================================================
+   NOTIFICAÇÕES PUSH
+   Depois de gerar a chave VAPID no Firebase (Configurações do projeto >
+   Cloud Messaging > Certificados push da Web), cole ela aqui embaixo.
+   =================================================================== */
+const VAPID_KEY = 'BLzgcYQb9-2BFMX9J9W8wKW0VaTssEA28cqKzh1diBk2_BCXcC0ekeqcWFyFkdtn2UowufLCOK6G82-vP_oMAdE';
+
+function podeReceberNotificacoes() {
+    return typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length &&
+        typeof firebase.messaging === 'function' &&
+        typeof Notification !== 'undefined' &&
+        'serviceWorker' in navigator;
+}
+
+function atualizarBotaoNotificacao() {
+    const btn = document.getElementById('btnAtivarNotificacoes');
+    if (!btn) return;
+    const ativado = localStorage.getItem('notificacoesAtivasBritS') === '1';
+    if (ativado) {
+        btn.textContent = '🔔 Notificações ativadas';
+        btn.disabled = true;
+    }
+}
+
+async function ativarNotificacoes() {
+    if (!podeReceberNotificacoes()) {
+        alert('Seu navegador não é compatível com notificações. Tente pelo Chrome.');
+        return;
+    }
+    if (VAPID_KEY === 'COLE_AQUI_A_SUA_CHAVE_VAPID') {
+        console.log('Configure a VAPID_KEY no script.js antes de usar as notificações.');
+        return;
+    }
+    try {
+        const permissao = await Notification.requestPermission();
+        if (permissao !== 'granted') {
+            alert('Você optou por não receber notificações. Pode ativar depois nas permissões do navegador.');
+            return;
+        }
+        const registration = await navigator.serviceWorker.ready;
+        const messaging = firebase.messaging();
+        const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
+        if (token) {
+            await firebase.database().ref('notificacaoTokens/' + token).set({
+                criadoEm: firebase.database.ServerValue.TIMESTAMP
+            });
+            localStorage.setItem('notificacoesAtivasBritS', '1');
+            atualizarBotaoNotificacao();
+        }
+    } catch (err) {
+        console.log('Erro ao ativar notificações:', err);
+        alert('Não foi possível ativar as notificações agora. Tente de novo mais tarde.');
+    }
+}
+
+// Mostra um aviso na tela quando a notificação chega com o site já aberto
+function mostrarToastNotificacao(titulo, corpo) {
+    const toast = document.getElementById('toastNotificacao');
+    const tituloEl = document.getElementById('toastNotificacaoTitulo');
+    const corpoEl = document.getElementById('toastNotificacaoCorpo');
+    if (!toast || !tituloEl || !corpoEl) return;
+    tituloEl.textContent = titulo || '';
+    corpoEl.textContent = corpo || '';
+    toast.style.display = 'flex';
+    setTimeout(() => { toast.style.display = 'none'; }, 6000);
+}
+
+atualizarBotaoNotificacao();
+
+if (podeReceberNotificacoes() && VAPID_KEY !== 'COLE_AQUI_A_SUA_CHAVE_VAPID') {
+    try {
+        firebase.messaging().onMessage((payload) => {
+            const titulo = (payload.notification && payload.notification.title) || "Brit's Confeitaria";
+            const corpo = (payload.notification && payload.notification.body) || '';
+            mostrarToastNotificacao(titulo, corpo);
+        });
+    } catch (e) {
+        console.log('Não foi possível escutar notificações em primeiro plano:', e);
+    }
+}
+
 // Fecha o lightbox clicando fora da imagem, e permite navegar com o teclado (setas e Esc)
 document.addEventListener('DOMContentLoaded', () => {
     const lb = document.getElementById('lightboxImagem');
