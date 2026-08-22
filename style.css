@@ -173,13 +173,34 @@ main {
     left: 10px;
     background-color: #e0483b;
     color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    padding: 7px 16px;
+    border-radius: 16px;
+    box-shadow: 0 3px 10px rgba(224,72,59,0.45);
     z-index: 5;
+    animation: pulso-oferta 1.6s ease-in-out infinite;
 }
+
+@keyframes pulso-oferta {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+
+.categoria-titulo-oferta {
+    color: #e0483b !important;
+    font-size: 1.4em !important;
+}
+
+.categoria-btn-oferta {
+    background: #fdecea !important;
+    color: #e0483b !important;
+    border-color: #f0b7ae !important;
+    font-weight: 800 !important;
+}
+.categoria-btn-oferta:hover { background: #e0483b !important; color: #fff !important; }
+.categoria-btn-oferta.active { background: #e0483b !important; color: #fff !important; border-color: #e0483b !important; }
 
 .produto-item .adicionar-carrinho {
     background-color: var(--primary);
@@ -638,6 +659,12 @@ footer {
     background: #fff0e0;
     color: #a0522d;
     border-bottom: 1px solid #f0c896;
+}
+.oferta-banner span {
+    cursor: pointer;
+}
+.oferta-banner span:hover {
+    text-decoration: underline;
 }
 .oferta-banner button {
     background: none;

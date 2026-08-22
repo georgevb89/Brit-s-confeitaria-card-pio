@@ -564,6 +564,67 @@ function renderizarProdutos() {
     carrosselImagensRegistro = {};
     let contadorCarrossel = 0;
 
+    // Monta o card de um produto (reaproveitado tanto na seção de Ofertas quanto na categoria normal dele)
+    function construirCardProduto(produto) {
+        const produtoItemDiv = document.createElement('div');
+        produtoItemDiv.classList.add('produto-item');
+
+        if (!produto.disponivel) {
+            produtoItemDiv.classList.add('indisponivel');
+        }
+
+        const emOferta = produto.precoOriginal && produto.precoOriginal > produto.preco;
+        const temVariantes = Array.isArray(produto.variantes) && produto.variantes.length > 0;
+
+        const imagens = (Array.isArray(produto.imagens) && produto.imagens.length > 0)
+            ? produto.imagens
+            : (produto.imagem ? [produto.imagem] : []);
+        const carrosselId = 'carrossel-' + (contadorCarrossel++);
+        carrosselImagensRegistro[carrosselId] = imagens;
+        const temVariasImagens = imagens.length > 1;
+
+        produtoItemDiv.innerHTML = `
+            ${emOferta ? `<div class="produto-tag">🔥 OFERTA</div>` : ''}
+            <div class="produto-imagem-wrap" id="${carrosselId}" data-indice="0">
+                <img src="${imagens[0] || ''}" alt="${produto.nome}" class="produto-imagem-atual">
+                ${temVariasImagens ? `
+                    <button type="button" class="carrossel-seta carrossel-anterior">‹</button>
+                    <button type="button" class="carrossel-seta carrossel-proximo">›</button>
+                    <div class="carrossel-dots">${imagens.map((_, i) => `<span class="carrossel-dot${i === 0 ? ' ativo' : ''}"></span>`).join('')}</div>
+                ` : ''}
+            </div>
+            <h3>${produto.nome}</h3>
+            <p class="descricao">${produto.descricao}</p>
+            <p class="preco">
+                ${emOferta ? `<span class="preco-original">R$ ${produto.precoOriginal.toFixed(2).replace('.', ',')}</span> ` : ''}R$ ${produto.preco.toFixed(2).replace('.', ',')}
+            </p>
+            ${produto.disponivel && temVariantes
+                ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
+                : ''
+            }
+            ${produto.disponivel
+                ? `<button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>`
+                : `<button class="adicionar-carrinho indisponivel-btn" disabled>Indisponível</button>`
+            }
+        `;
+        return produtoItemDiv;
+    }
+
+    // Seção especial "🔥 Ofertas do Dia" (só aparece se tiver algum produto em oferta disponível)
+    const produtosEmOferta = produtos.filter(p => p.disponivel && p.precoOriginal && p.precoOriginal > p.preco);
+    if (produtosEmOferta.length > 0) {
+        const tituloOferta = document.createElement('h3');
+        tituloOferta.classList.add('categoria-titulo', 'categoria-titulo-oferta');
+        tituloOferta.id = 'secao-ofertas';
+        tituloOferta.textContent = '🔥 Ofertas do Dia';
+        listaProdutosDiv.appendChild(tituloOferta);
+
+        const gridOferta = document.createElement('div');
+        gridOferta.classList.add('categoria-grid');
+        produtosEmOferta.forEach(produto => gridOferta.appendChild(construirCardProduto(produto)));
+        listaProdutosDiv.appendChild(gridOferta);
+    }
+
     categoriasNaOrdem.forEach(categoria => {
         const produtosDaCategoria = produtos.filter(produto => produto.categoria === categoria);
         if (produtosDaCategoria.length === 0) return;
@@ -577,54 +638,7 @@ function renderizarProdutos() {
         const gridEl = document.createElement('div');
         gridEl.classList.add('categoria-grid');
 
-        produtosDaCategoria.forEach(produto => {
-            const produtoItemDiv = document.createElement('div');
-            produtoItemDiv.classList.add('produto-item');
-
-            // Adiciona a classe 'indisponivel' se o produto não estiver disponível
-            if (!produto.disponivel) {
-                produtoItemDiv.classList.add('indisponivel');
-            }
-
-            // Verifica se o produto está em oferta (tem precoOriginal maior que o preco atual)
-            const emOferta = produto.precoOriginal && produto.precoOriginal > produto.preco;
-
-            const temVariantes = Array.isArray(produto.variantes) && produto.variantes.length > 0;
-
-            // Aceita tanto o campo antigo "imagem" (uma foto) quanto o novo "imagens" (várias fotos)
-            const imagens = (Array.isArray(produto.imagens) && produto.imagens.length > 0)
-                ? produto.imagens
-                : (produto.imagem ? [produto.imagem] : []);
-            const carrosselId = 'carrossel-' + (contadorCarrossel++);
-            carrosselImagensRegistro[carrosselId] = imagens;
-            const temVariasImagens = imagens.length > 1;
-
-            produtoItemDiv.innerHTML = `
-                ${emOferta ? `<div class="produto-tag">🔥 Oferta</div>` : ''}
-                <div class="produto-imagem-wrap" id="${carrosselId}" data-indice="0">
-                    <img src="${imagens[0] || ''}" alt="${produto.nome}" class="produto-imagem-atual">
-                    ${temVariasImagens ? `
-                        <button type="button" class="carrossel-seta carrossel-anterior">‹</button>
-                        <button type="button" class="carrossel-seta carrossel-proximo">›</button>
-                        <div class="carrossel-dots">${imagens.map((_, i) => `<span class="carrossel-dot${i === 0 ? ' ativo' : ''}"></span>`).join('')}</div>
-                    ` : ''}
-                </div>
-                <h3>${produto.nome}</h3>
-                <p class="descricao">${produto.descricao}</p>
-                <p class="preco">
-                    ${emOferta ? `<span class="preco-original">R$ ${produto.precoOriginal.toFixed(2).replace('.', ',')}</span> ` : ''}R$ ${produto.preco.toFixed(2).replace('.', ',')}
-                </p>
-                ${produto.disponivel && temVariantes
-                    ? `<div class="variantes-lista">${produto.variantes.map(v => `<button type="button" class="variante-pill" data-variante="${v}">${v}</button>`).join('')}</div>`
-                    : ''
-                }
-                ${produto.disponivel
-                    ? `<button class="adicionar-carrinho" data-nome="${produto.nome}" data-preco="${produto.preco}">Adicionar ao Carrinho</button>`
-                    : `<button class="adicionar-carrinho indisponivel-btn" disabled>Indisponível</button>`
-                }
-            `;
-            gridEl.appendChild(produtoItemDiv);
-        });
+        produtosDaCategoria.forEach(produto => gridEl.appendChild(construirCardProduto(produto)));
 
         listaProdutosDiv.appendChild(gridEl);
     });
@@ -727,6 +741,18 @@ function renderizarCategorias() {
 
     categoriasNav.innerHTML = ''; // Limpa a navegação de categorias
 
+    // Botão especial de Ofertas, só aparece se tiver produto em oferta disponível
+    const temOfertaAtiva = produtos.some(p => p.disponivel && p.precoOriginal && p.precoOriginal > p.preco);
+    if (temOfertaAtiva) {
+        const liOferta = document.createElement('li');
+        const btnOferta = document.createElement('button');
+        btnOferta.textContent = '🔥 Ofertas';
+        btnOferta.classList.add('categoria-btn', 'categoria-btn-oferta');
+        btnOferta.addEventListener('click', () => irParaOfertas());
+        liOferta.appendChild(btnOferta);
+        categoriasNav.appendChild(liOferta);
+    }
+
     categorias.forEach(categoria => {
         const li = document.createElement('li');
         const button = document.createElement('button');
@@ -748,6 +774,12 @@ function renderizarCategorias() {
         li.appendChild(button);
         categoriasNav.appendChild(li);
     });
+}
+
+// Rola a página até a seção "🔥 Ofertas do Dia" — usado pelo botão da barra de categorias e pelo aviso de oferta
+function irParaOfertas() {
+    const alvo = document.getElementById('secao-ofertas');
+    if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Acompanha o scroll e destaca sozinho a categoria que está aparecendo na tela
