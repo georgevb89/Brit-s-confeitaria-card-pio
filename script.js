@@ -995,15 +995,20 @@ function atualizarUIClube() {
     if (proxima) {
         const anterior = [...ordenadas].reverse().find(r => r.pontos <= pontos);
         const base = anterior ? anterior.pontos : 0;
-        const pct = Math.min(100, Math.round(((pontos - base) / (proxima.pontos - base)) * 100));
+        const faixa = proxima.pontos - base;
+        const pct = faixa > 0 ? Math.min(100, Math.round(((pontos - base) / faixa) * 100)) : 0;
         barra.style.width = pct + '%';
-        progressoTexto.textContent = `🎁 Faltam ${proxima.pontos - pontos} pontos para: ${proxima.descricao}`;
+
+        const faltam = proxima.pontos - pontos;
+        const perto = faixa > 0 && (faltam / faixa) <= 0.2; // faltando 20% ou menos da faixa, fica animado
+        const prefixo = perto ? '🔥 Faltam apenas' : 'Faltam';
+        progressoTexto.innerHTML = `⭐ <strong>${pontos} / ${proxima.pontos}</strong> pontos<br>${prefixo} ${faltam} ${faltam === 1 ? 'ponto' : 'pontos'} para ganhar: <strong>${proxima.descricao}</strong>!`;
     } else if (ordenadas.length > 0) {
         barra.style.width = '100%';
-        progressoTexto.textContent = '🎉 Você já pode resgatar todas as recompensas disponíveis!';
+        progressoTexto.innerHTML = `⭐ <strong>${pontos}</strong> pontos<br>🎉 Você já pode resgatar todas as recompensas disponíveis!`;
     } else {
         barra.style.width = '0%';
-        progressoTexto.textContent = 'Continue comprando pra acumular pontos!';
+        progressoTexto.innerHTML = `⭐ <strong>${pontos}</strong> pontos acumulados<br>Continue comprando pra ganhar prêmios!`;
     }
 
     renderRecompensasClube(comIndice, pontos);
