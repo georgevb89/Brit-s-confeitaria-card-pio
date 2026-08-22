@@ -109,6 +109,8 @@ function montarCardPedido(id, pedido, comAcoes) {
     const tagStatus = {
         pendente: '<span class="pedido-tag tag-status-pendente">Pendente</span>',
         aceito: '<span class="pedido-tag tag-status-aceito">Aceito</span>',
+        em_rota: '<span class="pedido-tag tag-status-em-rota">🛵 Em rota</span>',
+        entregue: '<span class="pedido-tag tag-status-entregue">✅ Entregue</span>',
         recusado: '<span class="pedido-tag tag-status-recusado">Recusado</span>'
     }[pedido.status] || '';
 
@@ -136,18 +138,52 @@ function montarCardPedido(id, pedido, comAcoes) {
         <div class="pedido-total-linha total-final"><span>Total</span><span>${pedido.total != null ? formatarPreco(pedido.total) : 'A confirmar'}</span></div>
         ${enderecoHtml}
         ${obsHtml}
-        ${comAcoes ? `
-        <div class="pedido-acoes">
-            <button class="btn-aceitar" onclick="responderPedido('${id}', 'aceito')">✅ Aceitar</button>
-            <button class="btn-recusar" onclick="responderPedido('${id}', 'recusado')">✖ Recusar</button>
-        </div>` : ''}
+        ${comAcoes ? montarBotoesAcaoPedido(id, pedido) : ''}
     `;
     return div;
 }
 
+function montarBotoesAcaoPedido(id, pedido) {
+    if (pedido.status === 'pendente') {
+        return `
+        <div class="pedido-acoes">
+            <button class="btn-aceitar" onclick="responderPedido('${id}', 'aceito')">✅ Aceitar</button>
+            <button class="btn-recusar" onclick="responderPedido('${id}', 'recusado')">✖ Recusar</button>
+        </div>`;
+    }
+    if (pedido.status === 'aceito') {
+        const btnRota = pedido.tipoEntrega === 'entrega'
+            ? `<button class="btn-em-rota" onclick="responderPedido('${id}', 'em_rota')">🛵 Saiu para entrega</button>`
+            : '';
+        return `
+        <div class="pedido-acoes">
+            ${btnRota}
+            <button class="btn-entregue" onclick="responderPedido('${id}', 'entregue')">✅ Marcar como Entregue</button>
+        </div>`;
+    }
+    if (pedido.status === 'em_rota') {
+        return `
+        <div class="pedido-acoes">
+            <button class="btn-entregue" onclick="responderPedido('${id}', 'entregue')">✅ Marcar como Entregue</button>
+        </div>`;
+    }
+    return '';
+}
+
 function responderPedido(id, novoStatus) {
-    db.ref('pedidos/' + id).update({ status: novoStatus })
-        .catch(err => alert('Não foi possível atualizar o pedido: ' + err.message));
+    const pedidoRef = db.ref('pedidos/' + id);
+    pedidoRef.once('value').then(snap => {
+        const pedido = snap.val();
+        if (!pedido) return;
+        // Proteção: se já estava entregue, não credita pontos de novo (evita clique duplo)
+        if (novoStatus === 'entregue' && pedido.status === 'entregue') return;
+
+        return pedidoRef.update({ status: novoStatus }).then(() => {
+            if (novoStatus === 'entregue') {
+                creditarPontosFidelidade(pedido);
+            }
+        });
+    }).catch(err => alert('Não foi possível atualizar o pedido: ' + err.message));
 }
 
 function atualizarContador() {
@@ -543,9 +579,12 @@ function salvarOrdemCategorias() {
 
 // ---------- CLUBE DE FIDELIDADE ----------
 
+let configFidelidadeAtual = {};
+
 function escutarConfigFidelidade() {
     db.ref('configuracao/fidelidade').on('value', snap => {
         const cfg = snap.val() || {};
+        configFidelidadeAtual = cfg;
         const ativoEl = document.getElementById('fidelidadeAtiva');
         const dobroEl = document.getElementById('fidelidadePontosDobro');
         if (document.activeElement !== document.getElementById('fidelidadeValorPorPonto')) {
@@ -563,6 +602,41 @@ function escutarConfigFidelidade() {
         ativoEl.checked = !!cfg.ativo;
         dobroEl.checked = !!cfg.pontosDobro;
     });
+}
+
+// Credita os pontos ganhos (e desconta os de uma recompensa resgatada) só quando o pedido é
+// marcado como Entregue — nunca antes disso, pra não premiar pedidos recusados/cancelados
+function creditarPontosFidelidade(pedido) {
+    if (!pedido || !pedido.telefone) return;
+    const tel = String(pedido.telefone).replace(/\D/g, '');
+    if (tel.length < 10) return;
+
+    const cfg = configFidelidadeAtual || {};
+    const valorBase = Math.max(0, (pedido.subtotal || 0) - (pedido.desconto || 0));
+    let pontosGanhos = 0;
+    if (cfg.ativo) {
+        const valorPorPonto = cfg.valorPorPonto || 10;
+        pontosGanhos = Math.floor(valorBase / valorPorPonto);
+        if (cfg.pontosDobro) pontosGanhos *= 2;
+    }
+    const pontosResgatados = (pedido.recompensaResgatada && pedido.recompensaResgatada.pontos) || 0;
+
+    const ref = db.ref('fidelidade/' + tel);
+    ref.once('value').then(snap => {
+        const atual = snap.val() || { pontos: 0, totalGasto: 0 };
+        const novosPontos = Math.max(0, (atual.pontos || 0) + pontosGanhos - pontosResgatados);
+        ref.set({
+            nome: pedido.nome || atual.nome || '',
+            pontos: novosPontos,
+            totalGasto: Math.round(((atual.totalGasto || 0) + valorBase) * 100) / 100,
+            ultimoPedido: {
+                itens: (pedido.itens || []).map(i => ({ nome: i.nome, preco: i.preco, quantidade: i.quantidade, observacao: i.observacao || null })),
+                tipoEntrega: pedido.tipoEntrega,
+                data: Date.now()
+            },
+            atualizadoEm: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => console.log('Erro ao creditar fidelidade:', err));
+    }).catch(err => console.log('Erro ao ler fidelidade:', err));
 }
 
 function salvarConfigFidelidade() {
@@ -680,15 +754,21 @@ function iniciarEscutaPedidos() {
     escutarConfigFidelidade();
     escutarRecompensas();
 
-    const refPendentes = db.ref('pedidos').orderByChild('status').equalTo('pendente');
+    const refPedidos = db.ref('pedidos');
     const listaPendentesEl = document.getElementById('listaPendentes');
+    const statusFinais = ['entregue', 'recusado'];
+    const ehStatusFinal = pedido => statusFinais.includes(pedido.status);
 
-    // Carrega os pedidos pendentes já existentes, sem tocar som
-    refPendentes.once('value').then(snapshot => {
+    // Carrega os pedidos ainda ativos (pendente/aceito/em rota) já existentes, sem tocar som
+    refPedidos.orderByChild('timestamp').limitToLast(60).once('value').then(snapshot => {
         listaPendentesEl.innerHTML = '';
-        snapshot.forEach(child => {
-            listaPendentesEl.appendChild(montarCardPedido(child.key, child.val(), true));
-            idsRenderizados.add(child.key);
+        const itens = [];
+        snapshot.forEach(child => itens.push({ id: child.key, pedido: child.val() }));
+        itens.reverse(); // mais recentes primeiro
+        itens.forEach(({ id, pedido }) => {
+            if (ehStatusFinal(pedido)) return;
+            listaPendentesEl.appendChild(montarCardPedido(id, pedido, true));
+            idsRenderizados.add(id);
         });
         if (idsRenderizados.size === 0) {
             listaPendentesEl.innerHTML = '<p class="vazio">Nenhum pedido novo no momento.</p>';
@@ -697,18 +777,38 @@ function iniciarEscutaPedidos() {
         primeiraCargaConcluida = true;
 
         // A partir daqui, qualquer pedido novo dispara som + aparece na hora
-        refPendentes.on('child_added', snap => {
+        refPedidos.on('child_added', snap => {
             if (idsRenderizados.has(snap.key)) return; // já estava na carga inicial
+            const pedido = snap.val();
+            if (ehStatusFinal(pedido)) return; // pedido antigo carregado já finalizado, ignora
             const vazio = listaPendentesEl.querySelector('.vazio');
             if (vazio) vazio.remove();
-            listaPendentesEl.prepend(montarCardPedido(snap.key, snap.val(), true));
+            listaPendentesEl.prepend(montarCardPedido(snap.key, pedido, true));
             idsRenderizados.add(snap.key);
             atualizarContador();
-            if (primeiraCargaConcluida) tocarAlerta();
+            if (primeiraCargaConcluida && pedido.status === 'pendente') tocarAlerta();
         });
 
-        // Quando o pedido é aceito/recusado, some da lista de pendentes
-        refPendentes.on('child_removed', snap => {
+        // Quando o status do pedido muda (aceitar, sair pra entrega, entregar, recusar)
+        refPedidos.on('child_changed', snap => {
+            const pedido = snap.val();
+            const cardAtual = document.getElementById('pendente-' + snap.key);
+
+            if (ehStatusFinal(pedido)) {
+                // Chegou num status final -> sai da lista de pedidos ativos
+                if (cardAtual) cardAtual.remove();
+                idsRenderizados.delete(snap.key);
+                if (idsRenderizados.size === 0) {
+                    listaPendentesEl.innerHTML = '<p class="vazio">Nenhum pedido novo no momento.</p>';
+                }
+            } else if (idsRenderizados.has(snap.key) && cardAtual) {
+                // Atualiza o card no lugar, com os botões certos pro novo estágio
+                cardAtual.replaceWith(montarCardPedido(snap.key, pedido, true));
+            }
+            atualizarContador();
+        });
+
+        refPedidos.on('child_removed', snap => {
             idsRenderizados.delete(snap.key);
             const card = document.getElementById('pendente-' + snap.key);
             if (card) card.remove();

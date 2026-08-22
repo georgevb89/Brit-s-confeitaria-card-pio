@@ -395,13 +395,19 @@ function mostrarStatusPedido(pedidoId) {
     ref.on('value', snap => {
         const status = snap.val();
         if (!status) return;
-        banner.classList.remove('status-pendente', 'status-aceito', 'status-recusado');
+        banner.classList.remove('status-pendente', 'status-aceito', 'status-recusado', 'status-em_rota', 'status-entregue');
         if (status === 'pendente') {
             banner.classList.add('status-pendente');
             texto.textContent = '🕒 Pedido enviado! Aguardando a confirmação da loja...';
         } else if (status === 'aceito') {
             banner.classList.add('status-aceito');
             texto.textContent = '✅ Seu pedido foi aceito e já está sendo preparado!';
+        } else if (status === 'em_rota') {
+            banner.classList.add('status-em_rota');
+            texto.textContent = '🛵 Seu pedido saiu para entrega!';
+        } else if (status === 'entregue') {
+            banner.classList.add('status-entregue');
+            texto.textContent = '🎉 Pedido entregue! Seus pontos do Clube Brit\'s já foram creditados. Bom apetite!';
         } else if (status === 'recusado') {
             banner.classList.add('status-recusado');
             texto.textContent = '❌ Seu pedido foi recusado. Fale com a gente pelo WhatsApp para mais detalhes.';
@@ -1104,40 +1110,6 @@ function repetirUltimoPedido() {
     alert('Itens do seu último pedido foram adicionados ao carrinho!');
 }
 
-// Credita pontos automaticamente ao telefone do pedido (mesmo que o cliente não tenha "entrado" no Clube),
-// e desconta os pontos de uma recompensa resgatada, se houver
-function registrarPontosFidelidade(telefone, nome, valorPago, itensDoPedido, tipoEntregaPedido) {
-    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return;
-    const tel = normalizarTelefone(telefone);
-    if (!tel) return;
-    const cfg = configFidelidade || {};
-    const ref = firebase.database().ref('fidelidade/' + tel);
-
-    ref.once('value').then(snap => {
-        const atual = snap.val() || { pontos: 0, totalGasto: 0 };
-        let pontosGanhos = 0;
-        if (cfg.ativo) {
-            const valorPorPonto = cfg.valorPorPonto || 10;
-            pontosGanhos = Math.floor(valorPago / valorPorPonto);
-            if (cfg.pontosDobro) pontosGanhos *= 2;
-        }
-        let novosPontos = (atual.pontos || 0) + pontosGanhos;
-        if (recompensaSelecionada) {
-            novosPontos = Math.max(0, novosPontos - recompensaSelecionada.pontos);
-        }
-        ref.set({
-            nome,
-            pontos: novosPontos,
-            totalGasto: Math.round(((atual.totalGasto || 0) + valorPago) * 100) / 100,
-            ultimoPedido: { itens: itensDoPedido, tipoEntrega: tipoEntregaPedido, data: Date.now() },
-            atualizadoEm: firebase.database.ServerValue.TIMESTAMP
-        }).catch(err => console.log('Erro ao atualizar fidelidade:', err));
-    }).catch(err => console.log('Erro ao ler fidelidade:', err));
-
-    recompensaSelecionada = null;
-}
-
-
 botaoFinalizarCompra.addEventListener('click', () => {
     if (!lojaAbertaAtual) {
         alert('Estamos fechados no momento. Assim que reabrirmos, você já pode finalizar seu pedido!');
@@ -1226,22 +1198,24 @@ botaoFinalizarCompra.addEventListener('click', () => {
         cupom: cupomAplicado ? cupomAplicado.codigo : null,
         desconto: desconto > 0 ? desconto : 0,
         frete: tipoEntregaAtual === 'entrega' ? (freteConfirmado ? frete : null) : 0,
-        total: (tipoEntregaAtual === 'retirada' || freteConfirmado) ? (subtotalPedido - desconto + frete) : null
+        total: (tipoEntregaAtual === 'retirada' || freteConfirmado) ? (subtotalPedido - desconto + frete) : null,
+        // Guarda a recompensa resgatada (se houver) — os pontos só são efetivamente creditados/descontados
+        // quando a loja marcar o pedido como "Entregue" no painel, não na hora do pedido
+        recompensaResgatada: recompensaSelecionada ? {
+            pontos: recompensaSelecionada.pontos,
+            descricao: recompensaSelecionada.descricao
+        } : null
     });
 
-    // Guarda esse pedido pra mostrar o status (aceito/recusado) pro cliente
+    // Guarda esse pedido pra mostrar o status (pendente/aceito/em rota/entregue/recusado) pro cliente
     if (pedidoId) {
         localStorage.setItem('ultimoPedidoBritS', JSON.stringify({ id: pedidoId, criadoEm: Date.now() }));
         mostrarStatusPedido(pedidoId);
     }
 
-    // Credita os pontos de fidelidade pro telefone usado nesse pedido (mesmo que o cliente não tenha "entrado" no Clube)
-    registrarPontosFidelidade(
-        telefone, nome,
-        Math.max(0, subtotalPedido - desconto),
-        carrinho.map(item => ({ nome: item.nome, preco: item.preco, quantidade: item.quantidade, observacao: item.observacao || null })),
-        tipoEntregaAtual
-    );
+    // Importante: os pontos de fidelidade NÃO são creditados aqui — só quando a loja confirmar
+    // que o pedido foi entregue, lá no painel. Isso evita creditar pontos de pedidos recusados.
+    recompensaSelecionada = null;
 
     // Guarda os dados do cliente pra já vir preenchido na próxima compra
     localStorage.setItem('dadosClienteBritS', JSON.stringify({
