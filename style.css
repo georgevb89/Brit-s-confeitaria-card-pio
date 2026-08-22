@@ -877,56 +877,55 @@ footer {
 /* Clube Brit's (fidelidade) */
 .clube-brits-card {
     background: linear-gradient(135deg, #fff8ec, #fdf1de);
-    border: 2px solid var(--accent);
-    border-radius: 14px;
-    padding: 16px;
-    margin-top: 10px;
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 12px 14px;
     text-align: center;
+    font-size: 0.9em;
 }
 .clube-brits-card h3 {
-    margin: 0 0 4px;
+    margin: 0 0 2px;
     color: var(--primary);
-    font-size: 1.15em;
+    font-size: 1em;
 }
 .clube-brits-card > div > p {
-    margin: 0 0 10px;
+    margin: 0 0 8px;
     color: var(--muted);
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 .clube-brits-card button {
     background: var(--primary);
     color: #fff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
+    padding: 8px 16px;
+    border-radius: 8px;
     font-weight: 700;
     font-family: inherit;
+    font-size: 0.9em;
     cursor: pointer;
 }
 .clube-brits-card button:hover { background: var(--primary-dark); }
 
 #clubeFormIdentificacao input {
     width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     font-family: inherit;
-    font-size: 0.95em;
+    font-size: 0.9em;
     background: #fff;
 }
 
-.clube-saudacao { font-weight: 700; color: var(--primary); font-size: 1.05em; margin-bottom: 2px !important; }
-.clube-nivel { font-size: 0.95em; font-weight: 600; }
-.clube-pontos { font-size: 1.3em; color: var(--primary); font-weight: 700; margin: 4px 0 !important; }
+.clube-saudacao { font-weight: 700; color: var(--primary); font-size: 0.92em; margin: 0 0 6px !important; }
 
 .clube-barra-fundo {
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 20px;
-    height: 14px;
+    height: 10px;
     overflow: hidden;
-    margin: 8px 0 4px;
+    margin: 4px 0;
 }
 .clube-barra-preenchida {
     height: 100%;
@@ -937,28 +936,28 @@ footer {
 
 .clube-recompensas-titulo {
     color: var(--primary);
-    font-size: 0.95em;
-    margin: 16px 0 8px;
+    font-size: 0.85em;
+    margin: 10px 0 6px;
     text-align: left;
 }
 .clube-recompensa-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    font-size: 0.85em;
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    font-size: 0.78em;
     text-align: left;
 }
 .clube-recompensa-item.bloqueada { opacity: 0.5; }
 .clube-recompensa-item button {
-    padding: 6px 12px;
+    padding: 5px 10px;
     font-size: 0.85em;
-    border-radius: 8px;
+    border-radius: 6px;
     white-space: nowrap;
 }
 
@@ -966,8 +965,8 @@ footer {
     background: none !important;
     color: var(--muted) !important;
     text-decoration: underline;
-    font-size: 0.78em !important;
+    font-size: 0.72em !important;
     font-weight: 400 !important;
-    padding: 6px !important;
-    margin-top: 8px;
+    padding: 4px !important;
+    margin-top: 6px;
 }

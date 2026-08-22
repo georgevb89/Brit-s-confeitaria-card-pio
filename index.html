@@ -65,31 +65,6 @@
             </div>
 
             <button id="btnAtivarNotificacoes" class="btn-notificacoes" onclick="ativarNotificacoes()">🔔 Ativar notificações de ofertas e novidades</button>
-
-            <div id="clubeBritsCard" class="clube-brits-card" style="display:none;">
-                <div id="clubeNaoIdentificado">
-                    <h3>⭐ CLUBE BRIT'S</h3>
-                    <p>Compre, acumule pontos e ganhe benefícios!</p>
-                    <button type="button" onclick="abrirFormClube()">Entrar no Clube</button>
-                </div>
-
-                <div id="clubeFormIdentificacao" style="display:none;">
-                    <input type="text" id="clubeNomeInput" placeholder="Seu nome">
-                    <input type="tel" id="clubeTelefoneInput" placeholder="Seu WhatsApp">
-                    <button type="button" onclick="entrarNoClube()">Confirmar</button>
-                </div>
-
-                <div id="clubePerfil" style="display:none;">
-                    <p class="clube-saudacao">Olá, <span id="clubeNomeExibido"></span>! 👋</p>
-                    <p class="clube-nivel"><span id="clubeNivelEmoji"></span> Cliente <span id="clubeNivelNome"></span></p>
-                    <p class="clube-pontos"><strong id="clubePontosExibido">0</strong> pontos</p>
-                    <div class="clube-barra-fundo"><div id="clubeBarraProgresso" class="clube-barra-preenchida" style="width:0%;"></div></div>
-                    <p id="clubeProgressoTexto" class="note"></p>
-                    <button type="button" id="btnRepetirPedido" class="btn-notificacoes" style="display:none; margin-top:10px;" onclick="repetirUltimoPedido()">🔄 Repetir último pedido</button>
-                    <div id="clubeRecompensas"></div>
-                    <button type="button" onclick="sairDoClube()" class="link-sair-clube">Sair / trocar de conta</button>
-                </div>
-            </div>
         </div>
 
         <section id="produtos-destaque" class="container">
@@ -165,6 +140,31 @@
 
             <button class="finalizar-compra">Finalizar Compra</button>
         </section>
+
+        <div class="container">
+            <div id="clubeBritsCard" class="clube-brits-card" style="display:none;">
+                <div id="clubeNaoIdentificado">
+                    <h3>⭐ Clube Brit's</h3>
+                    <p>Compre, acumule pontos e ganhe benefícios!</p>
+                    <button type="button" onclick="abrirFormClube()">Entrar no Clube</button>
+                </div>
+
+                <div id="clubeFormIdentificacao" style="display:none;">
+                    <input type="text" id="clubeNomeInput" placeholder="Seu nome">
+                    <input type="tel" id="clubeTelefoneInput" placeholder="Seu WhatsApp">
+                    <button type="button" onclick="entrarNoClube()">Confirmar</button>
+                </div>
+
+                <div id="clubePerfil" style="display:none;">
+                    <p class="clube-saudacao">Olá, <span id="clubeNomeExibido"></span>! 👋 <span id="clubeNivelEmoji"></span> <span id="clubeNivelNome"></span> — <strong id="clubePontosExibido">0</strong> pts</p>
+                    <div class="clube-barra-fundo"><div id="clubeBarraProgresso" class="clube-barra-preenchida" style="width:0%;"></div></div>
+                    <p id="clubeProgressoTexto" class="note"></p>
+                    <button type="button" id="btnRepetirPedido" class="btn-notificacoes" style="display:none;" onclick="repetirUltimoPedido()">🔄 Repetir último pedido</button>
+                    <div id="clubeRecompensas"></div>
+                    <button type="button" onclick="sairDoClube()" class="link-sair-clube">Sair / trocar de conta</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
